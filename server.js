@@ -12,16 +12,6 @@ const PORT = process.env.PORT || 80; // CHANGED: Use port 80 for clean URLs (no 
 app.use(express.json());
 app.use(express.static('public'));
 
-// Simple password protection
-app.use((req, res, next) => {
-    if (req.path === '/api/health' || (req.query && req.query.password === 'Rsa@081601')) {
-        return next();
-    }
-    res.send('<html><body style="text-align:center;padding:50px;"><h2>🔒 Access Required</h2><form><input type="password" name="password" placeholder="Password"><button>Enter</button></form></body></html>');
-});
-
-const db = new sqlite3.Database('00 notetracker.db');
-
 // Create all tables
 db.serialize(() => {
     // Notes table
