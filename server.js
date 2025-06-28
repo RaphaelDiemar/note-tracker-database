@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 80; // CHANGED: Use port 80 for clean URLs (no 
 app.use(express.json());
 app.use(express.static('public'));
 
+const db = new sqlite3.Database('00 notetracker.db');
+
 // Create all tables
 db.serialize(() => {
     // Notes table
