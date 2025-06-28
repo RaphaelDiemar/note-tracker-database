@@ -21,7 +21,6 @@ app.use((req, res, next) => {
 });
 
 const db = new sqlite3.Database('00 notetracker.db');
-const db = new sqlite3.Database('00 notetracker.db');
 
 // Create all tables
 db.serialize(() => {
