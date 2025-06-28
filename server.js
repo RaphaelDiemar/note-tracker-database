@@ -12,18 +12,23 @@ const PORT = process.env.PORT || 80; // CHANGED: Use port 80 for clean URLs (no 
 app.use(express.json());
 app.use(express.static('public'));
 
-// 🔐 PASSWORD PROTECTION - ADD THIS SECTION
+// 🔐 FIXED PASSWORD PROTECTION
 app.use((req, res, next) => {
     // Skip password for health check (needed for Render)
     if (req.path === '/api/health') {
         return next();
     }
     
-    // Your secret password - Rsa@081601
-    const correctPassword = 'Rsa@081601'; // ← Change this to your password
+    // Skip password for static files (CSS, JS, images)
+    if (req.path.startsWith('/css') || req.path.startsWith('/js') || req.path.startsWith('/images')) {
+        return next();
+    }
     
-    // Check for password in URL query or form
-    const userPassword = req.query.password || req.body.password;
+    // Your secret password - Rsa@081601
+    const correctPassword = 'Rsa@081601'; // ← Your password
+    
+    // Safely check for password (avoid undefined errors)
+    const userPassword = req.query && req.query.password ? req.query.password : null;
     
     // If no password provided, show login form
     if (!userPassword) {
@@ -86,13 +91,13 @@ app.use((req, res, next) => {
                     .error {
                         color: #e74c3c;
                         margin-bottom: 20px;
+                        font-weight: bold;
                     }
                 </style>
             </head>
             <body>
                 <div class="login-container">
                     <h2>🔒 Note Tracker Access</h2>
-                    ${req.query.error ? '<div class="error">❌ Incorrect password</div>' : ''}
                     <form method="GET">
                         <input type="password" 
                                name="password" 
@@ -114,8 +119,90 @@ app.use((req, res, next) => {
     
     // Check if password is correct
     if (userPassword !== correctPassword) {
-        // Redirect back with error
-        return res.redirect(req.path + '?error=1');
+        return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>🔒 Access Denied - Note Tracker</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                    }
+                    .login-container {
+                        background: white;
+                        padding: 40px;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                        text-align: center;
+                        max-width: 400px;
+                        width: 90%;
+                    }
+                    h2 {
+                        color: #e74c3c;
+                        margin-bottom: 20px;
+                    }
+                    .error {
+                        color: #e74c3c;
+                        margin-bottom: 20px;
+                        font-weight: bold;
+                    }
+                    input[type="password"] {
+                        width: 100%;
+                        padding: 15px;
+                        border: 2px solid #e74c3c;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        margin-bottom: 20px;
+                        box-sizing: border-box;
+                    }
+                    input[type="password"]:focus {
+                        border-color: #c0392b;
+                        outline: none;
+                    }
+                    button {
+                        width: 100%;
+                        padding: 15px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: transform 0.2s;
+                    }
+                    button:hover {
+                        transform: translateY(-2px);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="login-container">
+                    <h2>❌ Incorrect Password</h2>
+                    <div class="error">Please try again</div>
+                    <form method="GET">
+                        <input type="password" 
+                               name="password" 
+                               placeholder="Enter correct password" 
+                               required 
+                               autofocus>
+                        <button type="submit">🚀 Try Again</button>
+                    </form>
+                </div>
+                
+                <script>
+                    // Auto-focus on password field
+                    document.querySelector('input[type="password"]').focus();
+                </script>
+            </body>
+            </html>
+        `);
     }
     
     // Password is correct, continue to the requested page
@@ -124,7 +211,7 @@ app.use((req, res, next) => {
 
 // Helper function to preserve password in URLs
 function addPasswordToUrl(req, url) {
-    const password = req.query.password;
+    const password = req.query && req.query.password ? req.query.password : null;
     if (password) {
         const separator = url.includes('?') ? '&' : '?';
         return url + separator + 'password=' + encodeURIComponent(password);
