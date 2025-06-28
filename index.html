@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Tracker System</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📝%3C/text%3E%3C/svg%3E">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .status-connected::before {
+            content: "🟢";
+            font-size: 10px;
+        }
+        
+        .status-disconnected::before {
+            content: "🔴";
+            font-size: 10px;
+        }
+        
+        .status-syncing::before {
+            content: "🟡";
+            font-size: 10px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sheet-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            max-width: 100%;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #808080;
+            border-radius: 1px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #808080;
+        }
+        
+        .sheet-header {
+            background: #6366f1;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sheet-title {
+            font-size: 1.5em;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .sheet-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin: 5px 0 0 0;
+        }
+        
+        .add-note-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .add-note-btn:hover {
+            background: #059669;
+        }
+        
+        .export-btn {
+            background: #f59e0b;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            background: #d97706;
+        }
+        
+        .delete-all-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .delete-all-btn:hover {
+            background: #dc2626;
+        }
+        
+        .search-container {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: white;
+        }
+        
+        .search-input:focus {
+            outline: 2px solid #6366f1;
+            border-color: #6366f1;
+        }
+        
+        .clear-search-btn {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #3c4043;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .clear-search-btn:hover {
+            background: #eef2ff;
+        }
+        
+        .sheet-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-weight: 400;
+            table-layout: fixed;
+        }
+        
+        .sheet-table th {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #3c4043;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        
+        .sheet-table td {
+            border: 1px solid #dadce0;
+            padding: 10px 16px;
+            vertical-align: middle;
+            line-height: 1.4;
+            font-size: 13px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .sheet-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .sheet-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .sheet-table tr:nth-child(even):hover {
+            background: #f0f0f0;
+        }
+        
+        .sheet-table tr.hidden {
+            display: none;
+        }
+        
+        .editable-cell {
+            background: #fff;
+            border: 1px solid #dadce0;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .editable-cell:focus {
+            outline: 2px solid #6366f1;
+            border-color: #6366f1;
+        }
+        
+        .date-cell {
+            color: #6366f1;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+        }
+        
+        .date-time {
+            color: #5f6368;
+            font-size: 10px;
+            font-weight: 500;
+            display: block;
+            margin-top: 2px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .add-row-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #dadce0;
+            display: none;
+        }
+        
+        .add-row-form.active {
+            display: block;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+        
+        .form-row.full-width {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #3c4043;
+        }
+        
+        .form-input {
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-textarea {
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .form-select {
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+        }
+        
+        .sheet-stats {
+            display: flex;
+            gap: 30px;
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            font-size: 0.85em;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .stat-item:hover {
+            background-color: #eef2ff;
+        }
+        
+        .stat-item.active {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        .stat-item.active .stat-label,
+        .stat-item.active .stat-value {
+            color: white;
+        }
+        
+        .stat-label {
+            color: #5f6368;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #3c4043;
+        }
+        
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 1px solid #dadce0;
+        }
+        
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-btn {
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            color: #3c4043;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            justify-content: space-between;
+        }
+        
+        .filter-btn:hover {
+            background: #f8f9fa;
+            border-color: #6366f1;
+        }
+        
+        .filter-btn.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            z-index: 1000;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+        }
+        
+        .filter-dropdown-content.show {
+            display: block;
+        }
+        
+        .filter-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .filter-option:last-child {
+            border-bottom: none;
+        }
+        
+        .filter-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .filter-option.selected {
+            background-color: #eef2ff;
+            color: #6366f1;
+            font-weight: 500;
+        }
+        
+        .filter-count {
+            font-size: 0.8em;
+            color: #5f6368;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .filter-option.selected .filter-count {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .clear-filters-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .clear-filters-btn:hover {
+            background: #dc2626;
+        }
+        
+        .active-filter-indicator {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .active-filter-indicator.show {
+            display: inline-block;
+        }
+        
+        .actions-cell {
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .action-icon {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+        
+        .action-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        .edit-icon {
+            color: #1976d2;
+        }
+        
+        .edit-icon:hover {
+            background: #e3f2fd;
+        }
+        
+        .delete-icon {
+            color: #dc2626;
+        }
+        
+        .delete-icon:hover {
+            background: #ffebee;
+        }
+        
+        .save-icon {
+            color: #10b981;
+        }
+        
+        .save-icon:hover {
+            background: #d1fae5;
+        }
+        
+        .cancel-icon {
+            color: #f59e0b;
+        }
+        
+        .cancel-icon:hover {
+            background: #fef3c7;
+        }
+        
+        .title-cell {
+            max-width: 300px;
+            min-width: 150px;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            font-weight: 500;
+            resize: horizontal;
+        }
+        
+        .content-cell {
+            max-width: 800px;
+            min-width: 400px;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            color: #5f6368;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            line-height: 1.4;
+            text-align: justify;
+            resize: horizontal;
+        }
+        
+        .auto-expand {
+            max-width: none !important;
+            width: auto !important;
+            min-width: 100px;
+        }
+        
+        .expand-btn {
+            background: #6366f1;
+            border: none;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            margin-left: 5px;
+            transition: background 0.2s ease;
+        }
+        
+        .expand-btn:hover {
+            background: #4f46e5;
+        }
+        
+        .expanded {
+            max-width: none !important;
+            width: auto !important;
+        }
+        
+        .collapse-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            margin-left: 5px;
+        }
+        
+        .collapse-btn:hover {
+            background: #dc2626;
+        }
+        
+        .content-cell a {
+            color: #6366f1;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        
+        .content-cell a:hover {
+            color: #4f46e5;
+        }
+        
+        .content-cell img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            margin: 8px 0;
+            display: block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .rich-editor {
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            background: white;
+            font-family: inherit;
+            font-size: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .editor-toolbar {
+            display: flex;
+            gap: 5px;
+            padding: 8px;
+            border-bottom: 1px solid #dadce0;
+            background: #f8f9fa;
+            border-radius: 6px 6px 0 0;
+            flex-wrap: wrap;
+        }
+        
+        .editor-btn {
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3c4043;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .editor-btn:hover {
+            background: #e8f0fe;
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+        
+        .editor-btn.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        .editor-content {
+            min-height: 200px;
+            padding: 12px;
+            border: none;
+            outline: none;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            resize: vertical;
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .editor-content:focus {
+            outline: none;
+        }
+        
+        .rich-editor:focus-within {
+            outline: 2px solid #6366f1;
+            border-color: #6366f1;
+        }
+        
+        .rich-editor .editor-content {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        
+        .url-input {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 2px solid #6366f1;
+            border-radius: 6px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .url-input input {
+            width: 250px;
+            padding: 6px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        
+        .url-input button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
+        .url-input .btn-add {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .url-input .btn-cancel {
+            background: #f8f9fa;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+        }
+        
+        .macro-select {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 40px;
+            letter-spacing: 0.3px;
+        }
+        
+        .macro-yes {
+            background: #d1fae5;
+            color: #10b981;
+        }
+        
+        .macro-no {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+        
+        .duplicate-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #856404;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .duplicate-warning.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div>Syncing with database...</div>
+        </div>
+    </div>
+
+    <div class="sheet-container">
+        <div class="sheet-header">
+            <div>
+                <h1 class="sheet-title">📝 Note Tracker System</h1>
+                <p class="sheet-subtitle">Organize your thoughts, ideas, and tasks efficiently - Your Daily Cheat Sheet!</p>
+                <div class="connection-status" id="connectionStatus">
+                    Connecting...
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="export-btn" onclick="exportToCSV()">📄 Export CSV</button>
+                <button class="export-btn" onclick="exportToExcel()">📊 Export Excel</button>
+                <button class="delete-all-btn" onclick="deleteAllRows()">🗑️ Delete All</button>
+                <button class="add-note-btn" onclick="toggleAddForm()">+ Add New Note</button>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search notes by title, content, category, or tags..." oninput="searchNotes()">
+            <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
+        </div>
+        
+        <div class="sheet-stats">
+            <div class="stat-item" onclick="showAllNotes()" id="totalStat">
+                <span class="stat-label">Total Notes:</span>
+                <span class="stat-value" id="totalNotes">0</span>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-dropdown">
+                    <button class="filter-btn" onclick="toggleCategoryDropdown()">
+                        <span>📁 Category</span>
+                        <span>▼</span>
+                    </button>
+                    <div class="filter-dropdown-content" id="categoryDropdown">
+                        <!-- Categories will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="filter-dropdown">
+                    <button class="filter-btn" onclick="toggleTagDropdown()">
+                        <span>🏷️ Tags</span>
+                        <span>▼</span>
+                    </button>
+                    <div class="filter-dropdown-content" id="tagDropdown">
+                        <!-- Tags will be populated here -->
+                    </div>
+                </div>
+                
+                <button class="clear-filters-btn" onclick="clearAllFilters()">Clear Filters</button>
+                
+                <div class="active-filter-indicator" id="activeFilterIndicator">
+                    <!-- Active filter info will be shown here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="add-row-form" id="addRowForm">
+            <div class="duplicate-warning" id="duplicateWarning">
+                ⚠️ <strong>Warning:</strong> Please fill in all required fields.
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Title *</label>
+                    <input type="text" class="form-input" id="newTitle" placeholder="Note title or summary">
+                </div>
+                <div>
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="newCategory">
+                        <option value="3rd Party Apps">3rd Party Apps</option>
+                        <option value="Admin Billing">Admin Billing</option>
+                        <option value="Affiliate Circle">Affiliate Circle</option>
+                        <option value="AI Agent">AI Agent</option>
+                        <option value="Analytics">Analytics</option>
+                        <option value="API (v1/v2/Headless)">API (v1/v2/Headless)</option>
+                        <option value="Audience">Audience</option>
+                        <option value="Bulk Import (Space)">Bulk Import (Space)</option>
+                        <option value="Bulk Import (Space Group)">Bulk Import (Space Group)</option>
+                        <option value="Circle Academy">Circle Academy</option>
+                        <option value="Circle Apps">Circle Apps</option>
+                        <option value="Circle Community">Circle Community</option>
+                        <option value="Circle Embed Widgets">Circle Embed Widgets</option>
+                        <option value="Circle Error Codes">Circle Error Codes</option>
+                        <option value="Circle Events">Circle Events</option>
+                        <option value="Circle Plus App">Circle Plus App</option>
+                        <option value="Community">Community</option>
+                        <option value="Community Access">Community Access</option>
+                        <option value="Courses">Courses</option>
+                        <option value="Custom Builder App">Custom Builder App</option>
+                        <option value="Custom Domain">Custom Domain</option>
+                        <option value="Data Export">Data Export</option>
+                        <option value="Design">Design</option>
+                        <option value="Desktop App">Desktop App</option>
+                        <option value="Dev Ops">Dev Ops</option>
+                        <option value="Discover">Discover</option>
+                        <option value="Email Hub">Email Hub</option>
+                        <option value="Events">Events</option>
+                        <option value="Gamification">Gamification</option>
+                        <option value="General Settings">General Settings</option>
+                        <option value="Image Spaces">Image Spaces</option>
+                        <option value="Integrations">Integrations</option>
+                        <option value="Live Stream">Live Stream</option>
+                        <option value="Login">Login</option>
+                        <option value="Member's Billing">Member's Billing</option>
+                        <option value="Members Directory">Members Directory</option>
+                        <option value="Messaging">Messaging</option>
+                        <option value="Misc">Misc</option>
+                        <option value="Notifications">Notifications</option>
+                        <option value="Paywalls">Paywalls</option>
+                        <option value="Post">Post</option>
+                        <option value="Posts">Posts</option>
+                        <option value="Promo">Promo</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Sandbox">Sandbox</option>
+                        <option value="SDR">SDR</option>
+                        <option value="Security">Security</option>
+                        <option value="Single Sign-On">Single Sign-On</option>
+                        <option value="Space">Space</option>
+                        <option value="Space Groups">Space Groups</option>
+                        <option value="Spaces">Spaces</option>
+                        <option value="Whitelabel (Branded Email)">Whitelabel (Branded Email)</option>
+                        <option value="Workflows">Workflows</option>                    
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Sub Category</label>
+                    <input type="text" class="form-input" id="newSubCategory" placeholder="Sub category">
+                </div>
+            </div>
+            
+            <div class="form-row full-width">
+                <div>
+                    <label class="form-label">Content</label>
+                    <div class="rich-editor" id="newContentEditor">
+                        <div class="editor-toolbar">
+                            <button type="button" class="editor-btn" onclick="formatText('bold')" title="Bold">
+                                <strong>B</strong>
+                            </button>
+                            <button type="button" class="editor-btn" onclick="formatText('italic')" title="Italic">
+                                <em>I</em>
+                            </button>
+                            <button type="button" class="editor-btn" onclick="formatText('underline')" title="Underline">
+                                <u>U</u>
+                            </button>
+                            <button type="button" class="editor-btn" onclick="insertLink()" title="Add Link">
+                                🔗 Link
+                            </button>
+                            <button type="button" class="editor-btn" onclick="insertImage()" title="Add Image">
+                                🖼️ Image
+                            </button>
+                            <button type="button" class="editor-btn" onclick="formatText('insertUnorderedList')" title="Bullet List">
+                                • List
+                            </button>
+                            <button type="button" class="editor-btn" onclick="formatText('insertOrderedList')" title="Numbered List">
+                                1. List
+                            </button>
+                        </div>
+                        <div class="editor-content" contenteditable="true" id="newContent" placeholder="Write your note content here..."></div>
+                    </div>
+                    <div class="url-input" id="urlInput">
+                        <input type="text" id="urlField" placeholder="Enter URL...">
+                        <button class="btn-add" onclick="addUrl()">Add</button>
+                        <button class="btn-cancel" onclick="cancelUrl()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Tags</label>
+                    <input type="text" class="form-input" id="newTags" placeholder="e.g., important, follow-up, deadline">
+                </div>
+                <div>
+                    <label class="form-label">Example Tickets</label>
+                    <input type="text" class="form-input" id="newExampleTickets" placeholder="e.g., TKT-001, TKT-002">
+                </div>
+                <div>
+                    <label class="form-label">Slack Channel</label>
+                    <input type="text" class="form-input" id="newSlackChannel" placeholder="e.g., #general, #support">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Macro</label>
+                    <select class="form-select" id="newMacro">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">FAQ Reference</label>
+                    <input type="url" class="form-input" id="newFaqReference" placeholder="https://...">
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewNote()">Add Note</button>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table class="sheet-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Actions</th>
+                        <th style="width: 200px;">Title</th>
+                        <th style="width: 600px;">Content</th>
+                        <th style="width: 150px;">Category</th>
+                        <th style="width: 120px;">Sub Category</th>
+                        <th style="width: 120px;">Tags</th>
+                        <th style="width: 150px;">Example Tickets</th>
+                        <th style="width: 120px;">Slack Channel</th>
+                        <th style="width: 80px;">Macro</th>
+                        <th style="width: 100px;">FAQ Reference</th>
+                        <th style="width: 130px;">Last Updated</th>
+                        <th style="width: 130px;">Date Created</th>
+                    </tr>
+                </thead>
+                <tbody id="noteTableBody">
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let noteList = [];
+        let currentFilter = 'all';
+        let currentSelection = null;
+        let activeFilters = {
+            category: null,
+            tag: null
+        };
+        let isConnected = false;
+
+        // Database API Functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            showLoading();
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`/api${endpoint}`, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Unknown error');
+                }
+                
+                updateConnectionStatus(true);
+                return result;
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                updateConnectionStatus(false);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            isConnected = connected;
+            
+            if (connected) {
+                statusElement.textContent = 'Connected to Database';
+                statusElement.className = 'connection-status status-connected';
+            } else {
+                statusElement.textContent = 'Database Disconnected';
+                statusElement.className = 'connection-status status-disconnected';
+            }
+        }
+
+        // Rich text editor functions
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            document.getElementById('newContent').focus();
+        }
+
+        function insertLink() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                currentSelection = selection.getRangeAt(0);
+            }
+            
+            const urlInput = document.getElementById('urlInput');
+            const urlField = document.getElementById('urlField');
+            urlInput.style.display = 'block';
+            urlField.focus();
+            urlField.value = '';
+        }
+
+        function insertImage() {
+            const url = prompt('Enter image URL:');
+            if (url) {
+                const img = `<img src="${url}" alt="Image" style="max-width: 100%; max-height: 200px; border-radius: 6px; margin: 8px 0; display: block;">`;
+                document.execCommand('insertHTML', false, img);
+            }
+            document.getElementById('newContent').focus();
+        }
+
+        function addUrl() {
+            const url = document.getElementById('urlField').value;
+            if (url) {
+                if (currentSelection) {
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(currentSelection);
+                }
+                
+                const selectedText = window.getSelection().toString();
+                const linkText = selectedText || url;
+                const link = `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+                document.execCommand('insertHTML', false, link);
+            }
+            cancelUrl();
+        }
+
+        function cancelUrl() {
+            document.getElementById('urlInput').style.display = 'none';
+            document.getElementById('newContent').focus();
+            currentSelection = null;
+        }
+
+        // Helper functions for inline editing rich text editor
+        function formatEditText(button, command) {
+            const editor = button.closest('.rich-editor').querySelector('.editor-content');
+            editor.focus();
+            document.execCommand(command, false, null);
+        }
+
+        function insertEditLink(button) {
+            const editor = button.closest('.rich-editor').querySelector('.editor-content');
+            editor.focus();
+            const url = prompt('Enter URL:');
+            if (url) {
+                const selectedText = window.getSelection().toString();
+                const linkText = selectedText || url;
+                const link = `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+                document.execCommand('insertHTML', false, link);
+            }
+        }
+
+        function insertEditImage(button) {
+            const editor = button.closest('.rich-editor').querySelector('.editor-content');
+            editor.focus();
+            const url = prompt('Enter image URL:');
+            if (url) {
+                const img = `<img src="${url}" alt="Image" style="max-width: 100%; max-height: 200px; border-radius: 6px; margin: 8px 0; display: block;">`;
+                document.execCommand('insertHTML', false, img);
+            }
+        }
+
+        // Function to ensure all links in content open in new tabs
+        function ensureLinksOpenInNewTab(content) {
+            if (!content) return content;
+            
+            // Create a temporary div to parse the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            
+            // Find all links and ensure they have target="_blank"
+            const links = tempDiv.querySelectorAll('a');
+            links.forEach(link => {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            });
+            
+            return tempDiv.innerHTML;
+        }
+
+        // Function to get HTML content from editor
+        function getEditorContent() {
+            const content = document.getElementById('newContent').innerHTML;
+            return ensureLinksOpenInNewTab(content);
+        }
+
+        // Function to set HTML content in editor
+        function setEditorContent(content) {
+            document.getElementById('newContent').innerHTML = ensureLinksOpenInNewTab(content) || '';
+        }
+
+        // Function to clear editor
+        function clearEditor() {
+            document.getElementById('newContent').innerHTML = '';
+        }
+
+        // Load notes from database
+        async function loadNotesFromDatabase() {
+            try {
+                updateConnectionStatus('syncing');
+                document.getElementById('connectionStatus').textContent = 'Syncing...';
+                document.getElementById('connectionStatus').className = 'connection-status status-syncing';
+                
+                const response = await apiCall('/notes');
+                
+                if (response.success) {
+                    const notesData = response.data;
+                    displayNotes(notesData);
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Failed to load notes:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function displayNotes(notesData) {
+            const tbody = document.getElementById('noteTableBody');
+            tbody.innerHTML = '';
+            
+            notesData.forEach(note => {
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-id', note.id);
+                
+                let faqCell = '-';
+                if (note.faqReference && note.faqReference !== '') {
+                    faqCell = `<a href="${note.faqReference}" target="_blank" style="color: #6366f1; text-decoration: none; font-size: 11px; font-weight: 500;">🔗 FAQ</a>`;
+                }
+
+                let macroCell = `<span class="macro-select macro-${(note.macro || 'No').toLowerCase()}">${note.macro || 'No'}</span>`;
+                
+                const dateCreated = new Date(note.dateCreated);
+                const lastUpdated = new Date(note.lastUpdated);
+                
+                newRow.innerHTML = `
+                    <td class="actions-cell">
+                        <button class="action-icon edit-icon" onclick="editRow(this)" title="Edit">✏️</button>
+                        <button class="action-icon delete-icon" onclick="deleteRow(this)" title="Delete">🗑️</button>
+                    </td>
+                    <td class="title-cell">${note.title}</td>
+                    <td class="content-cell">${ensureLinksOpenInNewTab(note.content || '-')}</td>
+                    <td style="font-size: 12px; color: #3c4043; font-weight: 500;">${note.category || '-'}</td>
+                    <td style="font-size: 12px; color: #5f6368;">${note.subCategory || '-'}</td>
+                    <td style="font-size: 12px; color: #6366f1; font-weight: 500;">${note.tags || '-'}</td>
+                    <td style="font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-weight: 500; color: #1976d2; font-size: 12px;">${note.exampleTickets || '-'}</td>
+                    <td style="font-size: 12px; color: #9333ea; font-weight: 500;">${note.slackChannel || '-'}</td>
+                    <td>${macroCell}</td>
+                    <td>${faqCell}</td>
+                    <td class="date-cell">${lastUpdated.toISOString().split('T')[0]}<span class="date-time">${lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span></td>
+                    <td class="date-cell">${dateCreated.toISOString().split('T')[0]}<span class="date-time">${dateCreated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span></td>
+                `;
+                tbody.appendChild(newRow);
+            });
+        }
+
+        // Filtering functions
+        function toggleCategoryDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            dropdown.classList.toggle('show');
+            
+            document.getElementById('tagDropdown').classList.remove('show');
+            
+            if (dropdown.classList.contains('show')) {
+                populateCategoryDropdown();
+            }
+        }
+
+        function toggleTagDropdown() {
+            const dropdown = document.getElementById('tagDropdown');
+            dropdown.classList.toggle('show');
+            
+            document.getElementById('categoryDropdown').classList.remove('show');
+            
+            if (dropdown.classList.contains('show')) {
+                populateTagDropdown();
+            }
+        }
+
+        function populateCategoryDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            const tbody = document.getElementById('noteTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            const categoryCount = {};
+            
+            rows.forEach(row => {
+                const categoryCell = row.cells[3];
+                if (categoryCell) {
+                    const category = categoryCell.textContent.trim();
+                    if (category && category !== '-') {
+                        categoryCount[category] = (categoryCount[category] || 0) + 1;
+                    }
+                }
+            });
+            
+            dropdown.innerHTML = '';
+            
+            const sortedCategories = Object.keys(categoryCount).sort();
+            
+            sortedCategories.forEach(category => {
+                const option = document.createElement('div');
+                option.className = 'filter-option';
+                if (activeFilters.category === category) {
+                    option.classList.add('selected');
+                }
+                
+                option.innerHTML = `
+                    <span>${category}</span>
+                    <span class="filter-count">${categoryCount[category]}</span>
+                `;
+                
+                option.onclick = () => filterByCategory(category);
+                dropdown.appendChild(option);
+            });
+        }
+
+        function populateTagDropdown() {
+            const dropdown = document.getElementById('tagDropdown');
+            const tbody = document.getElementById('noteTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            const tagCount = {};
+            
+            rows.forEach(row => {
+                const tagCell = row.cells[5];
+                if (tagCell) {
+                    const tagText = tagCell.textContent.trim();
+                    if (tagText && tagText !== '-') {
+                        tagText.split(',').forEach(tag => {
+                            const cleanTag = tag.trim();
+                            if (cleanTag) {
+                                tagCount[cleanTag] = (tagCount[cleanTag] || 0) + 1;
+                            }
+                        });
+                    }
+                }
+            });
+            
+            dropdown.innerHTML = '';
+            
+            const sortedTags = Object.keys(tagCount).sort();
+            
+            sortedTags.forEach(tag => {
+                const option = document.createElement('div');
+                option.className = 'filter-option';
+                if (activeFilters.tag === tag) {
+                    option.classList.add('selected');
+                }
+                
+                option.innerHTML = `
+                    <span>${tag}</span>
+                    <span class="filter-count">${tagCount[tag]}</span>
+                `;
+                
+                option.onclick = () => filterByTag(tag);
+                dropdown.appendChild(option);
+            });
+        }
+
+        function filterByCategory(category) {
+            activeFilters.category = category;
+            activeFilters.tag = null; // Clear tag filter
+            applyFilters();
+            closeDropdowns();
+            updateFilterUI();
+        }
+
+        function filterByTag(tag) {
+            activeFilters.tag = tag;
+            activeFilters.category = null; // Clear category filter
+            applyFilters();
+            closeDropdowns();
+            updateFilterUI();
+        }
+
+        function applyFilters() {
+            const tbody = document.getElementById('noteTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Apply category filter
+                if (activeFilters.category) {
+                    const categoryCell = row.cells[3];
+                    const category = categoryCell ? categoryCell.textContent.trim() : '';
+                    if (category !== activeFilters.category) {
+                        showRow = false;
+                    }
+                }
+                
+                // Apply tag filter
+                if (activeFilters.tag) {
+                    const tagCell = row.cells[5];
+                    const tagText = tagCell ? tagCell.textContent.trim() : '';
+                    const tags = tagText.split(',').map(tag => tag.trim());
+                    if (!tags.includes(activeFilters.tag)) {
+                        showRow = false;
+                    }
+                }
+                
+                if (showRow) {
+                    row.classList.remove('hidden');
+                    row.style.display = '';
+                } else {
+                    row.classList.add('hidden');
+                    row.style.display = 'none';
+                }
+            });
+            
+            updateStats();
+        }
+
+        function clearAllFilters() {
+            activeFilters.category = null;
+            activeFilters.tag = null;
+            showAllNotes();
+            updateFilterUI();
+        }
+
+        function showAllNotes() {
+            const tbody = document.getElementById('noteTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                row.classList.remove('hidden');
+                row.style.display = '';
+            });
+            
+            activeFilters.category = null;
+            activeFilters.tag = null;
+            updateStats();
+            updateFilterUI();
+        }
+
+        function updateFilterUI() {
+            const indicator = document.getElementById('activeFilterIndicator');
+            const categoryBtn = document.querySelector('.filter-dropdown .filter-btn');
+            const tagBtn = document.querySelectorAll('.filter-dropdown .filter-btn')[1];
+            
+            categoryBtn.classList.remove('active');
+            tagBtn.classList.remove('active');
+            
+            if (activeFilters.category) {
+                categoryBtn.classList.add('active');
+                indicator.textContent = `Filtered by Category: ${activeFilters.category}`;
+                indicator.classList.add('show');
+            } else if (activeFilters.tag) {
+                tagBtn.classList.add('active');
+                indicator.textContent = `Filtered by Tag: ${activeFilters.tag}`;
+                indicator.classList.add('show');
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
+
+        function closeDropdowns() {
+            document.getElementById('categoryDropdown').classList.remove('show');
+            document.getElementById('tagDropdown').classList.remove('show');
+        }
+
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.filter-dropdown')) {
+                closeDropdowns();
+            }
+        });
+
+        // Add new note to database
+        async function addNewNote() {
+            const title = document.getElementById('newTitle').value;
+            const content = getEditorContent();
+            const category = document.getElementById('newCategory').value;
+            const subCategory = document.getElementById('newSubCategory').value;
+            const tags = document.getElementById('newTags').value;
+            const exampleTickets = document.getElementById('newExampleTickets').value;
+            const slackChannel = document.getElementById('newSlackChannel').value;
+            const macro = document.getElementById('newMacro').value;
+            const faqReference = document.getElementById('newFaqReference').value;
+            
+            if (!title) {
+                alert('Please fill in the Title field');
+                return;
+            }
+            
+            try {
+                const noteData = {
+                    title,
+                    content: content || '',
+                    category: category || '',
+                    subCategory: subCategory || '',
+                    tags: tags || '',
+                    exampleTickets: exampleTickets || '',
+                    slackChannel: slackChannel || '',
+                    macro: macro || 'No',
+                    faqReference: faqReference || ''
+                };
+                
+                await apiCall('/notes', 'POST', noteData);
+                toggleAddForm();
+                await loadNotesFromDatabase();
+                
+            } catch (error) {
+                alert('Failed to save note. Please try again.');
+            }
+        }
+
+        function toggleAddForm() {
+            const form = document.getElementById('addRowForm');
+            form.classList.toggle('active');
+            
+            if (form.classList.contains('active')) {
+                document.getElementById('newTitle').value = '';
+                clearEditor();
+                document.getElementById('newCategory').value = '3rd Party Apps';
+                document.getElementById('newSubCategory').value = '';
+                document.getElementById('newTags').value = '';
+                document.getElementById('newExampleTickets').value = '';
+                document.getElementById('newSlackChannel').value = '';
+                document.getElementById('newMacro').value = 'No';
+                document.getElementById('newFaqReference').value = '';
+                document.getElementById('duplicateWarning').classList.remove('show');
+                document.getElementById('newTitle').focus();
+            }
+        }
+
+        function editRow(button) {
+            const row = button.closest('tr');
+            const cells = row.querySelectorAll('td');
+            
+            // Store original values for cancel functionality
+            row.setAttribute('data-original', JSON.stringify({
+                title: cells[1].textContent.trim(),
+                content: cells[2].innerHTML.trim(), // Store HTML to preserve formatting
+                category: cells[3].textContent.trim(),
+                subCategory: cells[4].textContent.trim(),
+                tags: cells[5].textContent.trim(),
+                exampleTickets: cells[6].textContent.trim(),
+                slackChannel: cells[7].textContent.trim(),
+                macro: cells[8].textContent.trim(),
+                faqReference: cells[9].querySelector('a') ? cells[9].querySelector('a').href : '',
+                dateCreated: cells[11].textContent.trim().slice(0,10),
+                timeStamp: cells[11].textContent.trim().slice(10)
+            }));
+            
+            // Mark row as editing
+            row.classList.add('editing');
+            
+            // Change action buttons to save/cancel
+            const actionsCell = cells[0];
+            actionsCell.innerHTML = `
+                <button class="action-icon save-icon" onclick="saveRow(this)" title="Save">💾</button>
+                <button class="action-icon cancel-icon" onclick="cancelEdit(this)" title="Cancel">❌</button>
+            `;
+            
+            for (let i = 1; i < cells.length - 2; i++) {
+                const cell = cells[i];
+                
+                if (i === 8) { // Macro
+                    const currentMacro = cell.textContent.trim();
+                    const select = document.createElement('select');
+                    select.className = 'editable-cell';
+                    select.innerHTML = `
+                        <option value="No" ${currentMacro === 'No' ? 'selected' : ''}>No</option>
+                        <option value="Yes" ${currentMacro === 'Yes' ? 'selected' : ''}>Yes</option>
+                    `;
+                    cell.innerHTML = '';
+                    cell.appendChild(select);
+                    
+                } else if (i === 9) { // FAQ Reference
+                    const currentFaq = cell.querySelector('a') ? cell.querySelector('a').href : '';
+                    const input = document.createElement('input');
+                    input.type = 'url';
+                    input.className = 'editable-cell';
+                    input.value = currentFaq;
+                    cell.innerHTML = '';
+                    cell.appendChild(input);
+                    
+                } else if (i === 2) { // Content - use rich text editor for editing
+                    const currentValue = cell.innerHTML.trim();
+                    
+                    // Create a mini rich text editor for editing
+                    const editorDiv = document.createElement('div');
+                    editorDiv.className = 'rich-editor';
+                    editorDiv.style.minHeight = '200px';
+                    
+                    const toolbar = document.createElement('div');
+                    toolbar.className = 'editor-toolbar';
+                    toolbar.innerHTML = `
+                        <button type="button" class="editor-btn" onclick="formatEditText(this, 'bold')" title="Bold"><strong>B</strong></button>
+                        <button type="button" class="editor-btn" onclick="formatEditText(this, 'italic')" title="Italic"><em>I</em></button>
+                        <button type="button" class="editor-btn" onclick="formatEditText(this, 'underline')" title="Underline"><u>U</u></button>
+                        <button type="button" class="editor-btn" onclick="insertEditLink(this)" title="Add Link">🔗</button>
+                        <button type="button" class="editor-btn" onclick="insertEditImage(this)" title="Add Image">🖼️</button>
+                        <button type="button" class="editor-btn" onclick="formatEditText(this, 'insertUnorderedList')" title="Bullet List">•</button>
+                        <button type="button" class="editor-btn" onclick="formatEditText(this, 'insertOrderedList')" title="Numbered List">1.</button>
+                    `;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'editor-content';
+                    contentDiv.contentEditable = true;
+                    contentDiv.innerHTML = currentValue === '-' ? '' : currentValue;
+                    
+                    editorDiv.appendChild(toolbar);
+                    editorDiv.appendChild(contentDiv);
+                    
+                    cell.innerHTML = '';
+                    cell.appendChild(editorDiv);
+                    
+                } else { // Text fields
+                    const currentValue = cell.textContent.trim();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'editable-cell';
+                    input.value = currentValue === '-' ? '' : currentValue;
+                    cell.innerHTML = '';
+                    cell.appendChild(input);
+                }
+            }
+        }
+
+        async function saveRow(button) {
+            const row = button.closest('tr');
+            const noteId = row.getAttribute('data-id');
+            const cells = row.querySelectorAll('td');
+            
+            try {
+                const updatedData = {};
+                
+                for (let i = 1; i < cells.length - 2; i++) {
+                    const cell = cells[i];
+                    let input = cell.querySelector('input, select, textarea, .rich-editor');
+                    
+                    if (input) {
+                        switch (i) {
+                            case 1: updatedData.title = input.value || ''; break;
+                            case 2: 
+                                const editorContent = input.querySelector ? input.querySelector('.editor-content') : input;
+                                updatedData.content = editorContent.innerHTML || input.value || '';
+                                break;
+                            case 3: updatedData.category = input.value || ''; break;
+                            case 4: updatedData.subCategory = input.value || ''; break;
+                            case 5: updatedData.tags = input.value || ''; break;
+                            case 6: updatedData.exampleTickets = input.value || ''; break;
+                            case 7: updatedData.slackChannel = input.value || ''; break;
+                            case 8: updatedData.macro = input.value || 'No'; break;
+                            case 9: updatedData.faqReference = input.value || ''; break;
+                        }
+                    }
+                }
+                
+                await apiCall(`/notes/${noteId}`, 'PUT', updatedData);
+                await loadNotesFromDatabase(); // Reload to get updated data
+                
+            } catch (error) {
+                alert('Failed to save changes. Please try again.');
+                cancelEdit(button); // Revert changes on error
+            }
+        }
+
+        function cancelEdit(button) {
+            const row = button.closest('tr');
+            const originalData = JSON.parse(row.getAttribute('data-original'));
+            const cells = row.querySelectorAll('td');
+            
+            // Reset action buttons
+            cells[0].innerHTML = `
+                <button class="action-icon edit-icon" onclick="editRow(this)" title="Edit">✏️</button>
+                <button class="action-icon delete-icon" onclick="deleteRow(this)" title="Delete">🗑️</button>
+            `;
+            
+            // Restore original data with proper formatting
+            cells[1].textContent = originalData.title;
+            cells[1].className = 'title-cell';
+            
+            cells[2].innerHTML = ensureLinksOpenInNewTab(originalData.content);
+            cells[2].className = 'content-cell';
+            
+            cells[3].innerHTML = `<span style="font-size: 12px; color: #3c4043; font-weight: 500;">${originalData.category}</span>`;
+            cells[4].innerHTML = `<span style="font-size: 12px; color: #5f6368;">${originalData.subCategory}</span>`;
+            cells[5].innerHTML = `<span style="font-size: 12px; color: #6366f1; font-weight: 500;">${originalData.tags}</span>`;
+            cells[6].innerHTML = `<span style="font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-weight: 500; color: #1976d2; font-size: 12px;">${originalData.exampleTickets}</span>`;
+            cells[7].innerHTML = `<span style="font-size: 12px; color: #9333ea; font-weight: 500;">${originalData.slackChannel}</span>`;
+            
+            cells[8].innerHTML = `<span class="macro-select macro-${originalData.macro.toLowerCase()}">${originalData.macro}</span>`;
+            
+            if (originalData.faqReference && originalData.faqReference !== '') {
+                cells[9].innerHTML = `<a href="${originalData.faqReference}" target="_blank" style="color: #6366f1; text-decoration: none; font-size: 11px; font-weight: 500;">🔗 FAQ</a>`;
+            } else {
+                cells[9].innerHTML = '-';
+            }
+            
+            // Restore original date created
+            cells[11].innerHTML = `${originalData.dateCreated}<span class="date-time">${originalData.timeStamp}</span>`;
+            cells[11].className = 'date-cell';
+            
+            row.classList.remove('editing');
+            row.removeAttribute('data-original');
+        }
+
+        async function deleteRow(button) {
+            if (confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                const row = button.closest('tr');
+                const noteId = row.getAttribute('data-id');
+                
+                try {
+                    await apiCall(`/notes/${noteId}`, 'DELETE');
+                    row.remove();
+                    updateStats();
+                } catch (error) {
+                    alert('Failed to delete note. Please try again.');
+                }
+            }
+        }
+
+        async function deleteAllRows() {
+            const tbody = document.getElementById('noteTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0) {
+                alert('No notes to delete.');
+                return;
+            }
+            
+            const confirmMessage = `Are you sure you want to delete ALL ${rows.length} notes?\n\nThis action cannot be undone!\n\nType "DELETE ALL" to confirm:`;
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'DELETE ALL') {
+                try {
+                    await apiCall('/notes/bulk-delete', 'DELETE');
+                    rows.forEach(row => row.remove());
+                    activeFilters.category = null;
+                    activeFilters.tag = null;
+                    updateStats();
+                    updateFilterUI();
+                    alert('All notes have been deleted.');
+                } catch (error) {
+                    alert('Failed to delete all notes. Please try again.');
+                }
+            } else if (userInput !== null) {
+                alert('Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
+            }
+        }
+
+        function searchNotes() {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            const tbody = document.getElementById('noteTableBody');
+            if (!tbody) return;
+            
+            const rows = tbody.querySelectorAll('tr');
+            
+            // Clear filters when searching
+            if (searchTerm) {
+                activeFilters.category = null;
+                activeFilters.tag = null;
+                updateFilterUI();
+            }
+            
+            rows.forEach(row => {
+                try {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 7) return;
+                    
+                    const searchableText = [
+                        cells[1] ? cells[1].textContent : '', // title
+                        cells[2] ? cells[2].textContent : '', // content
+                        cells[3] ? cells[3].textContent : '', // category
+                        cells[5] ? cells[5].textContent : ''  // tags
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchTerm || searchableText.includes(searchTerm)) {
+                        row.classList.remove('hidden');
+                        row.style.display = '';
+                    } else {
+                        row.classList.add('hidden');
+                        row.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.log('Error processing row', error);
+                }
+            });
+            
+            updateStats();
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // Reapply filters instead of showing all
+            if (activeFilters.category || activeFilters.tag) {
+                applyFilters();
+            } else {
+                showAllNotes();
+            }
+        }
+
+        function exportToCSV() {
+            const table = document.getElementById('noteTableBody');
+            const rows = table.querySelectorAll('tr:not(.hidden)');
+            
+            if (rows.length === 0) {
+                alert('No notes to export.');
+                return;
+            }
+            
+            let csvContent = 'Title,Content,Category,Sub Category,Tags,Example Tickets,Slack Channel,Macro,FAQ Reference,Last Updated,Date Created\n';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [];
+                
+                for (let i = 1; i < cells.length; i++) {
+                    let cellText = '';
+                    
+                    if (i === 9) { // FAQ Reference
+                        cellText = cells[i].querySelector('a') ? cells[i].querySelector('a').href : '';
+                    } else {
+                        cellText = cells[i].textContent.trim();
+                    }
+                    
+                    if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                        cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                    }
+                    
+                    rowData.push(cellText);
+                }
+                
+                csvContent += rowData.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'note_tracker_database_' + new Date().toISOString().split('T')[0] + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById('noteTableBody');
+            const rows = table.querySelectorAll('tr:not(.hidden)');
+            
+            if (rows.length === 0) {
+                alert('No notes to export.');
+                return;
+            }
+            
+            let excelData = [];
+            
+            excelData.push([
+                'Title', 'Content', 'Category', 'Sub Category',
+                'Tags', 'Example Tickets', 'Slack Channel', 'Macro', 'FAQ Reference', 'Last Updated', 'Date Created'
+            ]);
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [];
+                
+                for (let i = 1; i < cells.length; i++) {
+                    let cellValue = '';
+                    
+                    if (i === 9) { // FAQ Reference
+                        cellValue = cells[i].querySelector('a') ? cells[i].querySelector('a').href : '';
+                    } else {
+                        cellValue = cells[i].textContent.trim();
+                    }
+                    
+                    rowData.push(cellValue);
+                }
+                
+                excelData.push(rowData);
+            });
+            
+            let csvContent = '\uFEFF';
+            
+            excelData.forEach(row => {
+                const processedRow = row.map(cell => {
+                    let cellText = String(cell || '');
+                    if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                        cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                    }
+                    return cellText;
+                });
+                csvContent += processedRow.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { 
+                type: 'application/vnd.ms-excel;charset=utf-8;' 
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'note_tracker_database_' + new Date().toISOString().split('T')[0] + '.xlsx');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('Excel file exported successfully!');
+        }
+
+        function updateStats() {
+            const tbody = document.getElementById('noteTableBody');
+            const visibleRows = tbody.querySelectorAll('tr:not(.hidden)');
+            
+            let total = visibleRows.length;
+            
+            document.getElementById('totalNotes').textContent = total;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateConnectionStatus(false);
+            loadNotesFromDatabase();
+        });
+
+        // Periodic connection check (optional)
+        setInterval(() => {
+            if (!isConnected) {
+                loadNotesFromDatabase();
+            }
+        }, 30000); // Check every 30 seconds
+
+    </script>
+</body>
+</html>

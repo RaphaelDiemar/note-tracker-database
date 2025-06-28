@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Support Tickets</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            background: #ddd6fe;
+            color: #7c3aed;
+        }
+
+        .import-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .import-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .import-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .log-container {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .log-entry {
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .log-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .log-error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .log-info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .log-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Support Tickets Import</h1>
+            <p>Import your support tickets data from localStorage to database</p>
+        </div>
+
+        <div class="content">
+            <!-- Initial Status -->
+            <div class="status-card" id="initialStatus">
+                <div class="status-icon">📊</div>
+                <h2>Ready to Import Support Tickets</h2>
+                <p>This tool will import your support tickets from localStorage into the database.</p>
+                <br>
+                <button class="import-btn" onclick="startImport()">
+                    Start Import Process
+                </button>
+            </div>
+
+            <!-- Progress Status -->
+            <div class="status-card hidden" id="progressStatus">
+                <div class="status-icon">⚡</div>
+                <h2>Importing Tickets...</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">Initializing...</p>
+            </div>
+
+            <!-- Success Status -->
+            <div class="status-card hidden" id="successStatus">
+                <div class="status-icon">✅</div>
+                <h2>Import Completed Successfully!</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats will be populated here -->
+                </div>
+                <br>
+                <button class="import-btn" onclick="location.reload()">
+                    Import Again
+                </button>
+            </div>
+
+            <!-- Log Container -->
+            <div class="log-container hidden" id="logContainer">
+                <div id="logOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Support tickets data from your localStorage export
+        const supportTickets = [
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "05:53 PM",
+                "ticketNo": "366133",
+                "issue": "Circle Community Access",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Circle Community",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "05:53 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "05:39 PM",
+                "ticketNo": "366131",
+                "issue": "Community Access",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Community",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "05:39 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "04:56 PM",
+                "ticketNo": "365947",
+                "issue": "Analytics Bug",
+                "status": "On Hold (Asking Dev Team)",
+                "agent": "-",
+                "product": "Analytics",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Bug",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "04:56 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "04:39 PM",
+                "ticketNo": "365748",
+                "issue": "Circle Plus App",
+                "status": "Misrouted",
+                "agent": "-",
+                "product": "Circle Plus App",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "04:39 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "04:25 PM",
+                "ticketNo": "365828",
+                "issue": "Profile Image",
+                "status": "Resolved",
+                "agent": "-",
+                "product": "Audience",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "04:25 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "03:58 PM",
+                "ticketNo": "365794",
+                "issue": "Automatic Password Trim",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Circle Community",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Feedback",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "03:58 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "02:31 PM",
+                "ticketNo": "365870",
+                "issue": "Analytics",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Analytics",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "02:31 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "01:42 PM",
+                "ticketNo": "365902",
+                "issue": "Can't send a DM because he isn't a member yet",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Messaging",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "01:42 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "12:31 PM",
+                "ticketNo": "365689",
+                "issue": "Space Lock Screen Banner",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Space",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "12:31 PM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "10:46 AM",
+                "ticketNo": "365746",
+                "issue": "Feedback on ability to download videos by nonmembers",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Live Stream",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Feedback",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "10:46 AM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "10:21 AM",
+                "ticketNo": "359962",
+                "issue": "Error loading page Domain: undefined Error Code: -11 Description:",
+                "status": "On Hold (Asking Dev Team)",
+                "agent": "-",
+                "product": "Circle Apps",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Bug",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "10:21 AM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "09:19 AM",
+                "ticketNo": "365232",
+                "issue": "Import File",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Bulk Import (Space)",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "09:19 AM"
+            },
+            {
+                "dateCreated": "2025-06-25",
+                "timeStamp": "08:46 AM",
+                "ticketNo": "364312",
+                "issue": "Custom Domain",
+                "status": "On Hold (Asking Dev Team)",
+                "agent": "-",
+                "product": "Custom Domain",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "08:46 AM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "04:53 PM",
+                "ticketNo": "364645",
+                "issue": "Access Group",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Paywalls",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "04:53 PM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "03:43 PM",
+                "ticketNo": "365549",
+                "issue": "Share Recorded Publicly",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Events",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "03:43 PM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "01:22 PM",
+                "ticketNo": "365514",
+                "issue": "Email Hub",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Email Hub",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "01:22 PM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "12:06 PM",
+                "ticketNo": "364128",
+                "issue": "API Usage",
+                "status": "Escalated (CSM)",
+                "agent": "Raphy",
+                "product": "API (v1/v2/Headless)",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "12:06 PM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "11:53 AM",
+                "ticketNo": "365494",
+                "issue": "Community Access",
+                "status": "Open",
+                "agent": "-",
+                "product": "Community Access",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "11:53 AM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "11:34 AM",
+                "ticketNo": "365314",
+                "issue": "EasyCSV showing errors",
+                "status": "Pending",
+                "agent": "-",
+                "product": "EasyCSV",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Bug",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "11:34 AM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "10:38 AM",
+                "ticketNo": "363967",
+                "issue": "Added new cameras can select but no output",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Live Stream",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "10:38 AM"
+            },
+            {
+                "dateCreated": "2025-06-24",
+                "timeStamp": "10:31 AM",
+                "ticketNo": "365429",
+                "issue": "Not Receiving the email notification",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Notifications",
+                "queue": "C+",
+                "timesReplied": "2",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-25",
+                "lastUpdatedTimeStamp": "03:17 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "07:03 PM",
+                "ticketNo": "357943",
+                "issue": "Whitelabel",
+                "status": "Resolved",
+                "agent": "-",
+                "product": "Whitelabel (Branded Email)",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "09:27 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "06:41 PM",
+                "ticketNo": "365115",
+                "issue": "Workflow Issue Disabling DM",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Workflows",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "09:27 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "06:29 PM",
+                "ticketNo": "364932",
+                "issue": "Update/Delete Community",
+                "status": "Misrouted",
+                "agent": "Raphy",
+                "product": "Admin Billing",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "06:29 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "05:39 PM",
+                "ticketNo": "365116",
+                "issue": "Email Notication Icon Instead of Logo",
+                "status": "Resolved",
+                "agent": "Raphy",
+                "product": "Events",
+                "queue": "C+",
+                "timesReplied": "2",
+                "category": "Feedback",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "06:11 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "05:19 PM",
+                "ticketNo": "365023",
+                "issue": "OTP not being received",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Notifications",
+                "queue": "C+",
+                "timesReplied": "2",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "09:59 AM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "04:59 PM",
+                "ticketNo": "364628",
+                "issue": "Migration",
+                "status": "Escalated (CSM)",
+                "agent": "-",
+                "product": "Courses",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "04:59 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "04:45 PM",
+                "ticketNo": "363578",
+                "issue": "Update Email/Password",
+                "status": "Resolved",
+                "agent": "-",
+                "product": "Community Access",
+                "queue": "C+",
+                "timesReplied": "2",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-24",
+                "lastUpdatedTimeStamp": "05:27 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "04:32 PM",
+                "ticketNo": "364224",
+                "issue": "Space - Members Directory",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Space",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "04:32 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "02:52 PM",
+                "ticketNo": "361687",
+                "issue": "Android Bug App",
+                "status": "On Hold Escalated (Bug)",
+                "agent": "Raphy",
+                "product": "Circle Plus App",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Bug",
+                "department": "feedback-react-native-apps",
+                "slackUrl": "https://circleso.slack.com/archives/C03GD61R2C9/p1750050265860329",
+                "notionUrl": "https://www.notion.so/circleco/P3-VIP-Some-spaces-must-be-tapped-several-times-before-they-respond-open-up-214b655313b7801c8b21fa2ffca5f119",
+                "comments": "Cx has pushed back sayin the issue remains",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "02:53 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "02:46 PM",
+                "ticketNo": "364613",
+                "issue": "Account Access",
+                "status": "Pending",
+                "agent": "-",
+                "product": "Community Access",
+                "queue": "C+",
+                "timesReplied": "3",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "04:34 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "01:52 PM",
+                "ticketNo": "363447",
+                "issue": "Member ID",
+                "status": "Pending",
+                "agent": "-",
+                "product": "API (v1/v2/Headless)",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Question",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "02:38 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "12:21 PM",
+                "ticketNo": "363185",
+                "issue": "Branded App Opening a Link",
+                "status": "Pending",
+                "agent": "Leonardo",
+                "product": "Circle Apps",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Feedback",
+                "department": "-",
+                "slackUrl": "",
+                "notionUrl": "",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "01:48 PM"
+            },
+            {
+                "dateCreated": "2025-06-23",
+                "timeStamp": "09:16 AM",
+                "ticketNo": "339523",
+                "issue": "Branded app bug",
+                "status": "On Hold Escalated (Bug)",
+                "agent": "Roberto",
+                "product": "Circle Apps",
+                "queue": "C+",
+                "timesReplied": "1",
+                "category": "Bug",
+                "department": "feedback-cms",
+                "slackUrl": "https://circleso.slack.com/archives/C03GD61R2C9/p1746554119264119",
+                "notionUrl": "https://www.notion.so/circleco/P3-C-Inconsistent-hyperlink-and-general-URL-color-on-posts-comments-replies-and-DMs-1f6b655313b7807996feda3a3d824681?pvs=4",
+                "comments": "-",
+                "lastUpdated": "2025-06-23",
+                "lastUpdatedTimeStamp": "02:04 PM"
+            }
+        ];
+
+        let importStats = {
+            total: 0,
+            successful: 0,
+            failed: 0,
+            duplicates: 0
+        };
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logOutput = document.getElementById('logOutput');
+            
+            logContainer.classList.remove('hidden');
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            logOutput.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const percentage = Math.round((current / total) * 100);
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = `Processing ticket ${current} of ${total} (${percentage}%)`;
+        }
+
+        function showStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${importStats.total}</div>
+                    <div class="stat-label">Total Processed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${importStats.successful}</div>
+                    <div class="stat-label">Successfully Imported</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${importStats.failed}</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${importStats.duplicates}</div>
+                    <div class="stat-label">Duplicates Skipped</div>
+                </div>
+            `;
+        }
+
+        async function startImport() {
+            log('🚀 Starting support tickets import process...', 'info');
+            
+            // Hide initial status and show progress
+            document.getElementById('initialStatus').classList.add('hidden');
+            document.getElementById('progressStatus').classList.remove('hidden');
+            
+            // Test API connection first
+            try {
+                log('🔌 Testing API connection...', 'info');
+                const testResponse = await fetch('/api/tickets');
+                if (!testResponse.ok) {
+                    throw new Error(`API test failed: ${testResponse.status}`);
+                }
+                log('✅ API connection successful', 'success');
+            } catch (error) {
+                log(`❌ API connection failed: ${error.message}`, 'error');
+                log('💡 Make sure your server is running with tickets API support', 'warning');
+                return;
+            }
+
+            importStats.total = supportTickets.length;
+            log(`📊 Found ${importStats.total} tickets to import`, 'info');
+
+            // Import tickets one by one
+            for (let i = 0; i < supportTickets.length; i++) {
+                const ticket = supportTickets[i];
+                updateProgress(i + 1, supportTickets.length);
+                
+                try {
+                    log(`⚡ Importing ticket #${ticket.ticketNo}: ${ticket.issue}`, 'info');
+                    
+                    const response = await fetch('/api/tickets', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ticketNo: ticket.ticketNo,
+                            issue: ticket.issue,
+                            status: ticket.status,
+                            agent: ticket.agent === '-' ? null : ticket.agent,
+                            product: ticket.product,
+                            queue: ticket.queue,
+                            timesReplied: parseInt(ticket.timesReplied),
+                            category: ticket.category,
+                            department: ticket.department === '-' ? null : ticket.department,
+                            slackUrl: ticket.slackUrl || null,
+                            notionUrl: ticket.notionUrl || null,
+                            comments: ticket.comments === '-' ? null : ticket.comments,
+                            dateCreated: ticket.dateCreated,
+                            timeStamp: ticket.timeStamp,
+                            lastUpdated: ticket.lastUpdated,
+                            lastUpdatedTimeStamp: ticket.lastUpdatedTimeStamp
+                        })
+                    });
+
+                    if (response.ok) {
+                        importStats.successful++;
+                        log(`✅ Successfully imported ticket #${ticket.ticketNo}`, 'success');
+                    } else {
+                        const errorData = await response.json();
+                        if (response.status === 409) {
+                            importStats.duplicates++;
+                            log(`⚠️ Ticket #${ticket.ticketNo} already exists (skipped)`, 'warning');
+                        } else {
+                            importStats.failed++;
+                            log(`❌ Failed to import ticket #${ticket.ticketNo}: ${errorData.error}`, 'error');
+                        }
+                    }
+                } catch (error) {
+                    importStats.failed++;
+                    log(`❌ Error importing ticket #${ticket.ticketNo}: ${error.message}`, 'error');
+                }
+
+                // Small delay to prevent overwhelming the server
+                if (i < supportTickets.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            // Show completion
+            document.getElementById('progressStatus').classList.add('hidden');
+            document.getElementById('successStatus').classList.remove('hidden');
+            
+            showStats();
+            
+            log('🎉 Import process completed!', 'success');
+            log(`📈 Summary: ${importStats.successful} imported, ${importStats.duplicates} skipped, ${importStats.failed} failed`, 'info');
+            
+            if (importStats.successful > 0) {
+                log('🔗 You can now view your tickets at: /api/tickets', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Your 36 Notes - NO DUPLICATES VERSION</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .import-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .import-header {
+            background: #10b981;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .import-title {
+            font-size: 1.5em;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .import-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin: 5px 0 0 0;
+        }
+        
+        .import-content {
+            padding: 30px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .step h3 {
+            margin: 0 0 10px 0;
+            color: #10b981;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        
+        .status-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .status-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .import-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+            display: block;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .import-btn:hover {
+            background: #059669;
+        }
+        
+        .import-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #10b981;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="import-container">
+        <div class="import-header">
+            <h1 class="import-title">🎯 Import EXACTLY 36 Notes - NO DUPLICATES!</h1>
+            <p class="import-subtitle">Fixed version that won't create 144 duplicate entries!</p>
+        </div>
+        
+        <div class="import-content">
+            <div class="step">
+                <h3>Step 1: Delete existing notes (recommended)</h3>
+                <p>Go to your Note Tracker and click "Delete All" to remove the 144 duplicate entries first</p>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: Import EXACTLY 36 notes (no duplicates)</h3>
+                <p>This version removes the problematic formatting function that was creating duplicates!</p>
+                <button class="import-btn" id="importBtn" onclick="importNotes()">✨ Import EXACTLY 36 Notes</button>
+            </div>
+            
+            <div class="status status-info" id="status">
+                Ready to import EXACTLY 36 notes (no more duplicates!)
+            </div>
+            
+            <div class="progress" id="progressContainer" style="display: none;">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div id="logs" class="logs" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // All 36 notes - already perfectly formatted, no processing needed
+        const notesToImport = [
+            {
+                "title": "How to add a access group to a member's access",
+                "content": "<p>You're following the right steps for adding multiple access groups to existing members.</p><p><strong>Steps:</strong></p><ol><li>Go to <strong>Audience</strong> > find and select the member</li><li>Click the <strong>Access</strong> tab</li><li>Under <strong>Access groups</strong>, use the dropdown to select the desired access group</li><li>Click <strong>Confirm and save</strong></li></ol><p><strong>⚠️ Important consideration:</strong> When you add a member to an access group, it becomes the primary way to control their space access, and the access group settings take precedence over any previous manual space grants.</p><p>This means if Kelsey's or any other member's current TTC access was granted manually and there are overlapping spaces with the new access groups, the access groups will now control access to those spaces. If you later remove her from an access group, her access to overlapping spaces would be revoked, even if she originally had manual access to them.</p><p><em>Note:</em> Manually adding access groups does not reset course progress for current students, so they can continue where they left off.</p>",
+                "category": "Paywalls",
+                "subCategory": "Access Group",
+                "tags": "#accessgroup-howto",
+                "exampleTickets": "364645",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/basics/community-access/before-using-access-groups-key-considerations-and-faqs"
+            },
+            {
+                "title": "You can't delete an agent",
+                "content": "<p><strong>❌ You can't delete agents</strong> - you can turn them off but not delete them.</p><p><strong>⚠️ Important:</strong> Inactive agents still count toward your 10-agent limit.</p><p><strong>💡 Tip:</strong> Since agents are fully customizable, you can repurpose an existing agent instead of creating a new one when you reach the limit.</p>",
+                "category": "3rd Party Apps",
+                "subCategory": "-",
+                "tags": "#aiagent-delete",
+                "exampleTickets": "365268",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/ai-agents/ai-agents-overview"
+            },
+            {
+                "title": "Share a past event w/ recording Publicly",
+                "content": "<p>You can share your recording publicly without downloading and re-uploading it. Since your event was in a public space, you're already halfway there.</p><p><strong>To make the recording viewable by non-members:</strong></p><ol><li>Navigate to your event space</li><li>Select your event</li><li>Click the <strong>Share</strong> button</li><li>Enable <strong>\"Share to Web\"</strong></li><li>Copy the generated link</li><li>Test the link in an incognito/private browser window to confirm it works</li><li>Once confirmed, share the link with others</li></ol><p><strong>Important settings to check:</strong></p><ul><li>Ensure <strong>\"Hide location from non-attendees\"</strong> is turned off in your event settings</li><li>Confirm your event space is set to public (which you mentioned it already is)</li></ul><p><strong>About the warning message:</strong> When you enable \"Share to Web,\" you'll see: <em>\"This is a space of a private community. Visitors who register will have access to this event and become full members of this space.\"</em> This appears even for public spaces, but since yours is public, non-members can view the recording through the shared link without needing to register or become members.</p><p>Once configured, anyone with the link can watch your recording without logging in—there is no need to download and re-upload it as a separate post.</p>",
+                "category": "3rd Party Apps",
+                "subCategory": "-",
+                "tags": "#events-Hide location from non-attendees",
+                "exampleTickets": "365549",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/live-and-events/events/manage-events"
+            },
+            {
+                "title": "Update Profile Images through APIs",
+                "content": "<p><strong>❌ Sadly, using CSV to bulk update members' profile images is currently not possible.</strong></p><p><strong>💡 We recommend you use our API for that.</strong> Make sure you discuss this with an experienced developer to code a script that can loop through the list of members updating their profiles with the correct images.</p><p><strong>API Endpoints:</strong></p><ul><li><a href=\"https://api.circle.so\" target=\"_blank\">V1 API endpoint</a></li><li><a href=\"https://api.circle.so\" target=\"_blank\">V2 API endpoint</a></li></ul>",
+                "category": "API (v1/v2/Headless)",
+                "subCategory": "Profile Images",
+                "tags": "#api-profileimages",
+                "exampleTickets": "295794",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/custom-profile-fields/update-members-profile-fields-with-circle-api-or-zapier-endpoints"
+            },
+            {
+                "title": "Notify a moderator/admin when someone joins a space",
+                "content": "<p>Currently, <strong>Zapier does not have entry rules</strong> to start automation when members join spaces.</p><p>However, <strong>Circle workflows</strong> may help you accomplish this, since we have an entry rule named <strong>\"Joined space,\"</strong> which should initiate an automation whenever a new user joins a space.</p><p>Moving forward, you can use the action <strong>\"Send to webhook,\"</strong> allowing you to connect it to Zapier, which offers an entry rule called <strong>\"Catch a raw hook.\"</strong></p><p><em>Note:</em> The data passed by the \"joined space\" entry rule via Webhook contains the <code>community_member_id</code> record, which would depend on Zapier interpreting it and allowing a notification system to be implemented.</p>",
+                "category": "Workflows",
+                "subCategory": "Webhooks-Zapier",
+                "tags": "#workflow-webhooks-zapier",
+                "exampleTickets": "360246",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "Reward members points for actions taken outside of community",
+                "content": "<p>We do have <strong>Zapier and APIs</strong> (v1, v2, and Headless) workflows that you can use to automate processes in your community.</p><p>For your specific use case of rewarding external website activities, there is a technical workaround available, though it's not a native or completely seamless solution.</p><p><strong>How the Workaround Functions:</strong></p><p>The process uses hidden tags as intermediary triggers between your external platform and our gamification system. Here's how it works:</p><p><strong>Step 1: External Activity Detection</strong><br>Create a hidden tag in Circle (e.g., \"PWA_Grammar_Check_Complete\") that won't be visible to members but serves as a trigger mechanism.</p><p><strong>Step 2: Integration Bridge</strong><br>Set up a Zapier automation (or use our APIs directly) that connects your PWA to Circle. When a user completes a desired activity on ProWritingAid, the integration automatically tags that member with the corresponding hidden tag.</p><p><strong>Step 3: Reward Automation</strong><br>Create a Circle workflow that monitors for the hidden tag. When the tag is applied to a member, the workflow automatically awards the specified points/rewards and then removes the tag to reset the trigger.</p><p><strong>⚠️ Important Limitations:</strong></p><ul><li>This approach isn't 100% bulletproof for rapid, repeated activities</li><li>The complete cycle of adding tags, processing rewards, and removing tags can take several seconds to a minute to complete</li><li>Users performing the same activity multiple times in quick succession might not receive all intended rewards</li><li>If users perform multiple rewarded activities within a short timeframe, some rewards may not process due to timing delays</li></ul><p>This connects your external website to our rewards, but since it takes time to process, it works best for important milestones rather than quick, frequent activities.</p>",
+                "category": "Workflows",
+                "subCategory": "Gamification with Zapier",
+                "tags": "#gamification-zapieroutsideCircle",
+                "exampleTickets": "359682",
+                "slackChannel": "https://circleso.slack.com/archives/C042U01RB5F/p1745447525038569",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "There is no way to manipulate the data that is sent through the Circle webhook",
+                "content": "<p>Circle's <code>space_groups_joined</code> webhook currently only includes the <code>community_id</code>, <code>community_member_id</code>, and <code>space_group_id</code> in the payload. <strong>It does not include member details like name or email.</strong></p><p>Unfortunately, there isn't a built-in way to customize or enrich the data that gets sent through the webhook right now.</p><p><strong>💡 Workaround:</strong> You could use the <code>community_member_id</code> from the webhook payload to perform a secondary lookup via the Circle API to fetch member details.</p><p><strong>Here's how you could set that up in Zapier:</strong></p><ol><li><strong>Trigger:</strong> Catch Webhook in Zapier (from Circle)</li><li><strong>Action:</strong> Webhooks by Zapier — GET request to the Circle API endpoint <code>/api/v1/community_members/{community_member_id}</code></li><li><strong>Authentication:</strong> You'll need to provide your Circle API key</li><li><strong>Then:</strong> Use the response (which includes member name, email, etc.) to send your Slack message</li></ol>",
+                "category": "Workflows",
+                "subCategory": "Send to Webhooks",
+                "tags": "#workflow-webhooksmanipulate",
+                "exampleTickets": "360611",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/workflows/workflow-setup/configure-automation-workflows-to-send-webhooks"
+            },
+            {
+                "title": "Can Select Camera but no Output",
+                "content": "<p>This sounds like a <strong>camera permission or system-level access issue</strong>. When livestreaming software can detect multiple cameras but can't switch between them, it's often because:</p><ul><li>The app doesn't have proper camera permissions in macOS</li><li>Another application is already using one or more of the cameras</li><li>The cameras are being recognized, but not properly released when switching</li></ul><p><strong>🔧 This is most likely a camera permissions issue! Let's walk through fixing it:</strong></p><p><strong>Check Camera Permissions:</strong></p><ol><li>Go to <strong>System Preferences</strong> (or System Settings on newer macOS)</li><li>Select <strong>Privacy & Security</strong></li><li>Click on <strong>Camera</strong> in the left sidebar</li><li>Look for your livestreaming app in the list</li><li>Make sure the checkbox next to it is enabled</li></ol><p><strong>Close competing apps:</strong></p><p>Quit any other apps that might be using your cameras:</p><ul><li>FaceTime</li><li>Photo Booth</li><li>Zoom</li><li>Any video conferencing apps</li><li>Other streaming software</li></ul><p><strong>Issue with Previously Used Camera:</strong><br>If this is not the first time you are using the external camera and you are encountering this issue, please consider updating your browser.</p><p><strong>Testing on Another Browser:</strong><br>To further troubleshoot, test the live and external cameras on a different browser.</p><p><strong>If this doesn't solve it, please share with us the following:</strong></p><ul><li>Your browser and operating system (OS) details. You can use <a href=\"https://www.whatismybrowser.com/\" target=\"_blank\">this link</a> and then click on \"copy URL to clipboard\". You can then simply paste that URL to your reply to send us a detailed report</li><li>Screenshot of the camera permissions and system preferences in your browser</li></ul>",
+                "category": "Circle Events",
+                "subCategory": "Camera Output",
+                "tags": "#events-novideooutput",
+                "exampleTickets": "363967",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://www.browserstack.com/guide/allow-camera-access-on-chrome-mobile"
+            },
+            {
+                "title": "Revoke Points",
+                "content": "<p>Currently, there is <strong>no direct feature to reset all members' points to zero</strong> in Circle. However, you can revoke points awarded through workflows for individual members.</p><p><strong>⚠️ Please note:</strong> Points earned through likes cannot be revoked.</p><p><strong>To revoke points for a member:</strong></p><ol><li>Click the community name or logo in the top-left corner and select <strong>Audience</strong></li><li>Use the filters to search for a member</li><li>Hover over the member entry, click the <strong>More actions</strong> (three dots) icon next to the name, and select <strong>View profile</strong></li><li>Go to the <strong>Rewards</strong> tab</li><li>Click the <strong>More actions</strong> (three dots) icon next to the points you want to remove and select <strong>Revoke points</strong></li><li>In the dialog box that appears, click <strong>Revoke points</strong> to confirm the action</li></ol><p><strong>Remember:</strong> This process must be completed individually for each member and only for points awarded through workflows.</p><p>📖 Here's a great FAQ: <a href=\"https://help.circle.so/p/audience/gamification/revoke-a-member-s-gamification-points\" target=\"_blank\">Revoke a member's gamification points</a></p>",
+                "category": "Gamification",
+                "subCategory": "Revoke Points",
+                "tags": "#gamification-revokepoints",
+                "exampleTickets": "297854",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/gamification/revoke-a-member-s-gamification-points"
+            },
+            {
+                "title": "Exclude Moderators in the Gamification Ranking",
+                "content": "<p>Currently, there isn't a direct toggle within gamification settings to exclude moderators (unless they're admins), but I understand why this would be useful.</p><p><strong>💡 Here's a workaround you can try:</strong></p><p>Ask your moderators to go to their profiles and toggle off <strong>\"Show my profile in the member directory.\"</strong> This will remove them from the visible leaderboard while keeping their moderator permissions intact.</p><p>This is great feedback – I can see how having this as a built-in option would be much more convenient. I'll make sure to pass this along to our product team with the context of why it matters for community management.</p><p><em>Reference:</em> Show my profile in the member directory</p>",
+                "category": "Gamification",
+                "subCategory": "Exclude Moderators",
+                "tags": "#gamification-moderators",
+                "exampleTickets": "240623",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "Gamification and Workflow (Overview)",
+                "content": "<p>Thanks for reaching out! <strong>Workflows</strong> are the feature that will enable you to automate rewards for members with the new gamification features.</p><p>This will help automate actions such as:</p><ul><li>Sending a message</li><li>Providing special access once you reach a certain point level</li></ul><p><strong>📋 Important Notes:</strong></p><ul><li>Workflows are only available on the <strong>Business Plan</strong></li><li>You can upgrade to explore the feature more if you'd like and downgrade at any time if it doesn't fit your needs</li></ul><p><strong>About Gamification:</strong><br>Gamification aims to engage consumers, employees, and partners, encouraging them to collaborate, share, and interact more effectively.</p><p><strong>📖 Learn More:</strong></p><ul><li><a href=\"https://help.circle.so/p/audience/gamification/manage-gamification-settings\" target=\"_blank\">Get to know Gamification</a></li><li><a href=\"https://help.circle.so/p/audience/gamification/manage-gamification-settings\" target=\"_blank\">How to Enable Gamification</a></li></ul>",
+                "category": "Gamification",
+                "subCategory": "Workflow",
+                "tags": "#gamification-workflow",
+                "exampleTickets": "-",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/gamification/manage-gamification-settings"
+            },
+            {
+                "title": "Deleting a post doesn't remove points earned from likes on that content",
+                "content": "<p><strong>📌 Important:</strong> Deleting posts does not affect the points earned from likes on that content. <strong>The points will remain unchanged.</strong></p>",
+                "category": "Gamification",
+                "subCategory": "Deleted Posts",
+                "tags": "#gamification-deletedpost",
+                "exampleTickets": "-",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/gamification/manage-gamification-settings"
+            },
+            {
+                "title": "Activity Logs",
+                "content": "<p>The <strong>Member Activity Logs</strong> allow you to track individual member actions within your community, including logins, sign-ups, and other interactions.</p><p><strong>Key Features:</strong></p><ul><li>You can filter the activity logs by login events to see which members logged in or did not log in during a specific period</li><li>The logs track new sign-ups, allowing you to see how many members have joined your community over time</li><li>A feature you can use to filter logs for communities with various filters depending on the data you're looking for</li><li>The logs can be exported as CSV</li></ul><p>📖 For a step-by-step guide, check the full details <a href=\"https://help.circle.so/p/audience/member-management/view-member-activity-logs\" target=\"_blank\">here</a>.</p>",
+                "category": "Audience",
+                "subCategory": "Activity Logs",
+                "tags": "#audience-activitylogs",
+                "exampleTickets": "-",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/member-management/view-member-activity-logs"
+            },
+            {
+                "title": "undefined method 'any?' for nil",
+                "content": "<p>This was a <strong>known issue</strong> reported here: <a href=\"https://circleso.slack.com/archives/C010C760YAY/p1750096232204239\" target=\"_blank\">Slack Discussion</a>.</p>",
+                "category": "Bulk Import (Space)",
+                "subCategory": "Import",
+                "tags": "#import-nilerror",
+                "exampleTickets": "359452",
+                "slackChannel": "https://circleso.slack.com/archives/C010C760YAY/p1750096232204239",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "Exporting CSV from the Audience",
+                "content": "<p>The export feature has been moved to <strong>'More'</strong> after the Bulk Action in the same Audience tab.</p><p><strong>To access it, please follow these steps:</strong></p><ol><li>Go to <strong>Audience</strong></li><li>Select the tab from which you'd like to export (Contacts, Members, Invited, Admins, Moderators)</li><li>Click <strong>More</strong></li><li>Click <strong>Export CSV</strong></li></ol><p>📺 Here's a short GIF if helpful: <em>[GIF would be inserted here]</em></p>",
+                "category": "Audience",
+                "subCategory": "Export",
+                "tags": "#audience-export",
+                "exampleTickets": "-",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "How to Archive a Paywall?",
+                "content": "<p><strong>To archive a paywall, please follow these steps:</strong></p><ol><li>Go to the <strong>Paywalls</strong> page</li><li>Hover over the paywall you want to archive</li><li>Click the <strong>More actions</strong> (three dots) icon → <strong>Archive</strong></li><li>Click <strong>Confirm</strong></li></ol><p><strong>📌 Important:</strong> The paywall will be inaccessible for new purchases, but existing subscribers will keep access.</p><p>📺 Here's a short GIF for visual reference: <em>[GIF would be inserted here]</em></p><p>📖 Please refer to our <a href=\"https://help.circle.so/p/payments/paywall-management/archive-or-delete-a-paywall?locale=en\" target=\"_blank\">paywall archiving FAQ</a>.</p>",
+                "category": "Paywalls",
+                "subCategory": "Archive Steps",
+                "tags": "#paywall-archive-steps",
+                "exampleTickets": "-",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/payments/paywall-management/archive-or-delete-a-paywall?locale=en"
+            },
+            {
+                "title": "Archiving a Paywall",
+                "content": "<p><strong>No, archiving the paywall will not prevent users from renewing or extending their subscriptions</strong> once their current billing cycle ends.</p><p><strong>Here's what happens when you archive a paywall:</strong></p><ul><li><strong>Archiving only prevents new purchases</strong></li><li>Existing subscribers retain access and can continue their subscriptions, including renewals</li><li>Users with active subscriptions will not be blocked from renewing or extending after the paywall is archived</li><li>You can only delete a paywall if no members have purchased it; if there are active subscriptions, deletion is not possible</li></ul><p><strong>💡 Recommended Solution:</strong><br>Direct communication with users who resumed their subscription or are subscribed is likely your best option. Reach out to explain that the CORE Plan has been discontinued and ask them not to renew when their current billing cycle ends. This personal touch can prevent future renewals while maintaining a positive relationship with the subscriber.</p><p>You can use the workflow to send bulk DM/Email to those who are subscribed to the CORE Plan.</p><p>While archiving prevents new sign-ups, direct communication will be the most effective way to fully discontinue the paywall for this existing subscriber.</p><p>📖 For more details on paywall archiving and deletion, you can check our <a href=\"https://help.circle.so/p/payments/paywall-management/archive-or-delete-a-paywall\" target=\"_blank\">FAQ</a>.</p>",
+                "category": "Paywalls",
+                "subCategory": "Archive",
+                "tags": "#paywall-archive",
+                "exampleTickets": "364230",
+                "slackChannel": "https://circleso.slack.com/archives/C01T1FF4FG8",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/payments/paywall-management/archive-or-delete-a-paywall"
+            },
+            {
+                "title": "Add A Default Filter in the Members Directory",
+                "content": "<p>Circle does not currently offer the ability to set <strong>default filters for the Member Directory</strong>. The directory is designed to be flexible, allowing members to apply filters as needed, but the default view isn't customizable.</p><p>📝 <strong>Feedback Noted:</strong> I'll pass along your feedback to our product team. Customizable default filters could be a valuable feature, and your input helps us improve the platform.</p>",
+                "category": "Members Directory",
+                "subCategory": "Default Filter",
+                "tags": "#membersdirectory-defaultfilter",
+                "exampleTickets": "357943",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/member-management/get-to-know-the-member-directory"
+            },
+            {
+                "title": "Community Logo over Icon on Email Notifications",
+                "content": "<p><strong>😔 Sadly, our system is designed to pull from the community icon rather than allowing custom logo uploads for email headers.</strong></p><p>While I wish I had a workaround to offer you right now, this limitation is built into how our automated reminder system currently functions.</p>",
+                "category": "Notifications",
+                "subCategory": "Community Logo",
+                "tags": "#settings-communitylogo",
+                "exampleTickets": "365116, 311888",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": ""
+            },
+            {
+                "title": "Member bubbles (See more give incorrect total number/unfiltered result",
+                "content": "<p>I completely understand why this is so frustrating for your space members, and it doesn't make intuitive sense from a user experience perspective.</p><p><strong>⚠️ The Issue:</strong> When the members directory is set to public, the current system has a significant limitation: space members get directed to the whole community directory rather than seeing just their space colleagues.</p><p>We absolutely agree that this creates a poor user experience and isn't ideal for community engagement. This is excellent feedback to share with our development team—that space members should get a filtered view of who's in their specific space when clicking <strong>\"See Members\"</strong> instead of seeing the entire directory, similar to what admins experience when clicking the same button.</p><p><strong>🤔 About Mobile:</strong> You mentioned this works correctly on mobile. There isn't much difference in how it works on the branded/mobile app, so it's surprising if your members are getting a filtered view and not seeing the entire directory. Would you be able to share a quick screen recording of that? It would help us understand if a different flow is happening or if specific settings might be at play.</p>",
+                "category": "Space",
+                "subCategory": "Members Directory",
+                "tags": "#space-membersdirectory",
+                "exampleTickets": "364224233419",
+                "slackChannel": "https://circleso.slack.com/archives/C042U01RB5F/p1723668677917469",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/audience/member-management/get-to-know-the-member-directory"
+            },
+            {
+                "title": "Member ID vs Community ID",
+                "content": "<p>At this time, we don't have a way to provide the <strong>\"Member ID\"</strong> on the member exports directly, but the full community exports we provide have this value though it's only reflected on the <strong>\"Posts\"</strong> and <strong>\"Comments\"</strong> export.</p><p>This may not be useful as you don't have a direct way to associate the \"Member ID\" with the user directly, but <strong>the best way to actually get this information is using our public API</strong> as you're able to use the \"Members\" API call to get that data directly.</p><p>We're not able to show you how to achieve this via the API though as your tool for running them may be different from the tool we use to test these calls (Postman).</p><p><strong>💡 Recommended Solution:</strong><br>If you or someone on your team is familiar with APIs, the best approach is to retrieve the Community Member ID through our <a href=\"https://api.circle.so/#01d00376-f394-44b2-8327-7eee4539ad85\" target=\"_blank\">Members API endpoint</a> for the most complete solution covering all members.</p><p>This API call should return the <code>id</code> field containing the exact Community Member ID data you need and other member information, allowing you to create the mapping between User IDs and Community Member IDs. This would give you a comprehensive dataset to update your Google Sheet and ensure your certificate automation works properly going forward.</p>",
+                "category": "API (v1/v2/Headless)",
+                "subCategory": "Member ID",
+                "tags": "#api-memberID",
+                "exampleTickets": "166957",
+                "slackChannel": "https://circleso.slack.com/archives/C075N22U0PM",
+                "macro": "No",
+                "faqReference": "https://api.circle.so/#01d00376-f394-44b2-8327-7eee4539ad85"
+            },
+            {
+                "title": "Custom navigation bars and other code snippets do not reflect inside the branded app",
+                "content": "<p><strong>⚠️ Limitation:</strong> Custom navigation bars and other code snippets don't reflect properly inside the branded app.</p><p>Also, the <code>#</code> link functionality is currently limited to spaces only and doesn't extend to top menu tabs.</p><p><strong>💡 Potential Solution:</strong> Broadening this functionality to include menu tabs would be a logical solution that could solve your linking problem and provide a more reliable cross-platform approach.</p>",
+                "category": "Circle Plus App",
+                "subCategory": "Custom Navigation",
+                "tags": "#brandedapp-customnavigation",
+                "exampleTickets": "363185",
+                "slackChannel": "https://circleso.slack.com/archives/C03GD61R2C9",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/basics/customization/add-custom-links-to-the-top-navigation-bar?locale=en#link-availability"
+            },
+            {
+                "title": "We don't have an API for affiliate",
+                "content": "<p><strong>❌ We currently don't have an API path dedicated to our affiliate.</strong></p>",
+                "category": "Affiliate Circle",
+                "subCategory": "Affiliate",
+                "tags": "#api-affiliate",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C075N22U0PM",
+                "macro": "No",
+                "faqReference": "https://api.circle.so/#01d00376-f394-44b2-8327-7eee4539ad85"
+            },
+            {
+                "title": "Primary use of API",
+                "content": "<p><strong>The primary purpose of the Circle API</strong> is to allow Circle's community admins to build:</p><ul><li>Bulk automation</li><li>Migration scripts</li><li>Access data for reporting purposes</li></ul><p><strong>⚠️ Important Limitations:</strong></p><ul><li>Our API <strong>can't be used on the browser/client side</strong></li><li>Our API <strong>can't be used to re-create your own Circle app from scratch</strong></li></ul><p><strong>Design vs Data:</strong><br>Our API isn't configured to push design aspects, as it is more focused on data gathering than styling. If you are after the design style, such as what you referenced, then your use case would fall under <strong>CSS customization through your code snippets</strong>.</p>",
+                "category": "API (v1/v2/Headless)",
+                "subCategory": "Use",
+                "tags": "#api-use",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C075N22U0PM",
+                "macro": "No",
+                "faqReference": "https://api.circle.so/#01d00376-f394-44b2-8327-7eee4539ad85"
+            },
+            {
+                "title": "Course Completion Through APIs",
+                "content": "<p>However, you can use our API to <strong>update the students' lesson progress</strong>. You can call this endpoint to update their progress for the individual lessons, which will update their overall course completion rate.</p><p><strong>⚠️ Issues with your request:</strong></p><ol><li>The endpoint for updating lesson progress <strong>does not accept headless API tokens</strong>. To authenticate your requests to this endpoint, please create an <strong>Admin V1 token</strong> on Settings > Developers > Tokens</li><li>The endpoint you're using (<code>/v1/course-completions</code>) <strong>does not exist</strong>. As per the documentation, the endpoint for updating lesson progress is <code>/api/v1/course_lesson_progress</code></li><li>According to the documentation, the request passes the information as <strong>query parameters, not in the request body</strong></li><li>The request does not expect a member's ID, only <code>community_id</code>, <code>lesson_id</code>, <code>member_email</code>, and <code>status</code> (which can be <code>completed</code> or <code>incomplete</code>)</li><li>The request uses the <strong>PATCH method, not POST</strong></li></ol><p><strong>Correct URL format:</strong><br><code>https://app.circle.so/api/v1/course_lesson_progress?community_id=72432&lesson_id=1885181&member_email=jjbdean@me.com&status=completed</code></p>",
+                "category": "API (v1/v2/Headless)",
+                "subCategory": "v1,v2 and Headless",
+                "tags": "#api-ccoursecompletion",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C075N22U0PM",
+                "macro": "No",
+                "faqReference": "https://api.circle.so/#01d00376-f394-44b2-8327-7eee4539ad85"
+            },
+            {
+                "title": "Calculations of Presence, Contribution, and Participate scores",
+                "content": "<p>For engagement scores through the <strong>community AI feature</strong>, activity scores are generated for each community member every week.</p><p>A member's activity score is calculated over the <strong>last 30 days</strong> based on the factors you have enabled for activity scores in the AI settings:</p><ul><li><strong>Presence:</strong> Number of visits per day and number of days visited in the last 30 days</li><li><strong>Contribution:</strong> Number of likes and event RSVPs in the last 30 days</li><li><strong>Participation:</strong> Number of posts and comments in the last 30 days</li></ul>",
+                "category": "Analytics",
+                "subCategory": "Calculations",
+                "tags": "#analytics-calculation",
+                "exampleTickets": "238934",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Filtering Discrepancy",
+                "content": "<p>I looked into this, and <strong>the difference you're seeing between the Analytics and the Manage audience is due to how filtering works</strong> in these sections.</p><p><strong>The Filtering Difference:</strong></p><ul><li><strong>Manage audience</strong> applies an <strong>AND filter</strong>, meaning it only includes members who have all the selected criteria</li><li><strong>Analytics page</strong> applies an <strong>OR filter</strong>, meaning it includes members who have at least one of the selected criteria</li></ul><p>This explains why the Analytics page is showing a higher count — it's pulling in members who may not have the Parkinson's tag but match other criteria.</p><p><strong>📝 Good News:</strong> Our team is aware of this difference, and there are plans to unify the filtering behavior in a future update.</p>",
+                "category": "Analytics",
+                "subCategory": "Audience",
+                "tags": "#analytics-audience",
+                "exampleTickets": "303033",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Gamification vs. Top 30 members in Analytics",
+                "content": "<p>You will likely get <strong>different results</strong> because:</p><ul><li><strong>The leaderboard</strong> ranks members based on <strong>likes only</strong>, and no other metrics are included</li><li><strong>Metrics in the Analytics dashboard</strong> are based on <strong>engagement scores</strong>, which include:<br><code>(5 x posts per member) + (2 x comments per member) + (1 x likes received)</code></li></ul>",
+                "category": "Analytics",
+                "subCategory": "Gamification",
+                "tags": "#analytics-gamification",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Log in Daily when exporting just shows a number, not a list",
+                "content": "<p>The <strong>analytics export is designed to show aggregate data only</strong>, as documented in our knowledge base. It downloads the summary numbers you see on the dashboard rather than individual member details.</p><p><strong>💡 To get the actual list of who those 44 members are:</strong></p><ol><li>Go to your <strong>\"Audience\"</strong> section</li><li>Filter by <strong>\"Last logged in\"</strong> and set it to <strong>\"today\"</strong> or <strong>\"last 24 hours\"</strong></li><li>Then export that filtered list</li></ol><p>📺 <em>[Add a GIF here showing the process]</em></p><p>📝 I've also logged your feedback about wanting individual member details directly in the analytics export for our team to consider.</p>",
+                "category": "Analytics",
+                "subCategory": "Analytics Export",
+                "tags": "#analytics-export-dailylogin",
+                "exampleTickets": "240148",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "MAU computation",
+                "content": "<p>The <strong>MAU (Monthly Active Users)</strong> is simply calculated as:</p><p><code><strong>\"Active Members (30 Days)\" ÷ \"Total Members\"</strong></code></p><p>Once you apply the filter for <strong>\"Active Members (30 Days)\"</strong> on the Members Analytics page, you can manually calculate the percentage using this formula. This should give you the same result as the MAU percentage.</p>",
+                "category": "Analytics",
+                "subCategory": "MAU",
+                "tags": "#analytics-mau",
+                "exampleTickets": "278207",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Moderation Analytics",
+                "content": "<p>At the moment, <strong>Circle does not display which moderator approved a post</strong>. This information isn't visible to other members or tracked in the dashboard.</p><p>In terms of moderation analytics, there currently isn't a way to view metrics specific to moderation actions (like approvals or moderator activity). However, you can track general post and comment activity through the <strong>Posts & Comments analytics dashboard</strong>.</p><p><strong>Alternative Solutions to Consider:</strong><br>Since this is an advanced use case that Circle doesn't support yet, some community managers have turned to third-party solutions:</p><ul><li><strong>Splitbee.io</strong> - A third-party analytics platform that some Circle communities use for more comprehensive tracking</li><li><strong>Google Analytics</strong> - You can set up tracking by either adding your community to an existing GA account or creating a dedicated one with a unique analytics code</li></ul><p><strong>Next Steps:</strong> I'd recommend checking the <strong>Circle Community</strong> itself to see if other community managers have found creative workarounds for similar tracking needs. Sometimes the community shares integration tips that aren't in the official documentation.</p><p>While there's no current timeline for when Circle might add individual visitor tracking, your feedback has been shared with our development team and is valuable input for future planning.</p>",
+                "category": "Analytics",
+                "subCategory": "Moderations",
+                "tags": "#analytics-moderations",
+                "exampleTickets": "347209",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Paywall analytics",
+                "content": "<p>You should be able to use the community's <strong>Analytics</strong> to get the total percentage for your churn rate and your renewals.</p><p>In your Analytics, there is a dedicated tab for:</p><ul><li><strong>Churn data</strong></li><li><strong>Renewal data</strong></li></ul><p><strong>📌 Please note:</strong> You can use the filters in your Analytics if you want to be more specific.</p><p><strong>For the list of transactions:</strong> Consider using the <strong>Paywall Transactions and Subscriptions tabs</strong> to filter data and export it in a CSV.</p>",
+                "category": "Analytics",
+                "subCategory": "Paywall",
+                "tags": "#analytics-paywall",
+                "exampleTickets": "274309",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Posts and comments score",
+                "content": "<p>I'd recommend checking out <a href=\"https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas\" target=\"_blank\">this article on community analytics</a>, which provides a breakdown of how the scores are calculated.</p><p><strong>Scores in Circle analytics are activity scores</strong> that measure community engagement. A member's activity score is calculated over the <strong>last 30 days</strong> based on the factors you have enabled for activity scores in the AI settings:</p><ul><li><strong>Presence:</strong> Number of visits per day and number of days visited in the last 30 days</li><li><strong>Contribution:</strong> Number of likes and event RSVPs in the last 30 days</li><li><strong>Participation:</strong> Number of posts and comments in the last 30 days</li><li><strong>Connection:</strong> Number of active DM conversations in the last 30 days</li></ul><p><strong>In Circle's analytics, you can track post and comment engagement through various metrics:</strong></p><ul><li><strong>Total posts and comments:</strong> Shows the overall interaction level</li><li><strong>New posts and comments:</strong> Helps identify activity patterns</li><li><strong>Popular posts and comments:</strong> Highlights content with the most engagement</li></ul>",
+                "category": "Analytics",
+                "subCategory": "Posts and Comments Scoring",
+                "tags": "#analytics-score-pos&comments",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "What Analytics Does Circle Provide",
+                "content": "<p>Circle offers <strong>comprehensive analytics dashboards</strong> that help you track key metrics for your community, including:</p><ul><li><strong>Community engagement</strong> - Monitor how actively members participate in discussions and activities</li><li><strong>Revenue tracking</strong> - View all your revenue metrics from Circle Paywalls to understand your community's financial health</li><li><strong>Event analytics</strong> - Identify the most popular and well-attended events for future planning</li><li><strong>Member activity</strong> - Track individual and overall member participation patterns throughout their lifecycle</li></ul><p>These analytics give you <strong>actionable insights</strong> to make data-driven decisions that foster a thriving community, including optimal engagement timing, content performance, and member behavior patterns.</p><p>📖 <strong>Learn more:</strong> <a href=\"https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas\" target=\"_blank\">Access your community analytics</a></p><p><strong>Steps to access the Analytics:</strong></p><ol><li>Click your community name or logo (or the dropdown arrow next to it) in the top navigation bar</li><li>Select <strong>Settings</strong></li><li>You'll see the overview dashboard with key metrics and engagement insights</li></ol><p>📺 Here's a GIF for a walkthrough: <em>[GIF would be inserted here]</em></p>",
+                "category": "Analytics",
+                "subCategory": "Analytics Overview",
+                "tags": "#analytics",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Who viewed/visited posts/comments/spaces/space groups/a video in a post",
+                "content": "<p>Currently, <strong>Circle doesn't offer a feature to see which specific members [use case]</strong>. I understand how frustrating this must be when you're putting in significant effort to maintain [use case].</p><p><strong>Here's what's available and what you can do:</strong></p><p><strong>Current Circle Analytics:</strong> Circle's Space analytics can show you engagement patterns, popular content, and general member activity within your space, but it won't tell you which individual members have actually visited or viewed the content.</p><p><strong>Alternative Solutions to Consider:</strong><br>Since this is an advanced use case that Circle doesn't support yet, some community managers have turned to third-party solutions:</p><ul><li><strong>Splitbee.io</strong> - A third-party analytics platform that some Circle communities use for more comprehensive tracking</li><li><strong>Google Analytics</strong> - You can set up tracking by either adding your community to an existing GA account or creating a dedicated one with a unique analytics code</li></ul><p><strong>Next Steps:</strong> I'd recommend checking the <strong>Circle Community</strong> itself to see if other community managers have found creative workarounds for similar tracking needs. Sometimes the community shares integration tips that aren't in the official documentation.</p><p>While there's no current timeline for when Circle might add individual visitor tracking, your feedback has been shared with our development team and is valuable input for future planning.</p>",
+                "category": "Analytics",
+                "subCategory": "Who viewed/visited a post, comments, space or a video",
+                "tags": "#analytics-who-viewed",
+                "exampleTickets": "362826",
+                "slackChannel": "-",
+                "macro": "No",
+                "faqReference": "https://help.circle.so/p/administration/analytics/access-your-community-analytics#intervalo-de-datas"
+            },
+            {
+                "title": "Affiliate Link for Circle customer",
+                "content": "<p>Circle customers must fill out this form to become affiliates: <a href=\"https://circle.so/affiliate-program\" target=\"_blank\">https://circle.so/affiliate-program</a></p><p><strong>Some restrictions/rules to observe:</strong></p><ul><li>Adding another community doesn't count as an affiliate discount - Apologies about that!</li></ul><p><strong>💰 Earn Commission:</strong> You can earn a <strong>20% recurring commission</strong> for referring new customers by applying to our Affiliates program here: <a href=\"https://dash.partnerstack.com/application?company=circleco&group=affiliates\" target=\"_blank\">https://dash.partnerstack.com/application?company=circleco&group=affiliates</a></p>",
+                "category": "Affiliate Circle",
+                "subCategory": "Affiliate",
+                "tags": "#affiliate-circle",
+                "exampleTickets": "-",
+                "slackChannel": "https://circleso.slack.com/archives/C05F29S5RT5",
+                "macro": "No",
+                "faqReference": ""
+            }
+        ];
+
+        async function importNotes() {
+            const importBtn = document.getElementById('importBtn');
+            const status = document.getElementById('status');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const logs = document.getElementById('logs');
+            
+            // Disable button
+            importBtn.disabled = true;
+            importBtn.textContent = '⏳ Importing exactly 36 notes...';
+            
+            // Show progress
+            progressContainer.style.display = 'block';
+            logs.style.display = 'block';
+            logs.textContent = '';
+            
+            status.className = 'status status-info';
+            status.textContent = 'Starting import of EXACTLY 36 notes (fixed duplicate issue)...';
+            
+            try {
+                let imported = 0;
+                let errors = 0;
+                
+                for (let i = 0; i < notesToImport.length; i++) {
+                    const note = notesToImport[i];
+                    
+                    try {
+                        // Content is already properly formatted, no processing needed
+                        
+                        // Send to database
+                        const response = await fetch('/api/notes', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(note)
+                        });
+                        
+                        if (response.ok) {
+                            imported++;
+                            logs.textContent += `✅ Imported: "${note.title.substring(0, 50)}..."\n`;
+                        } else {
+                            errors++;
+                            logs.textContent += `❌ Error importing: "${note.title.substring(0, 50)}..."\n`;
+                        }
+                        
+                        // Update progress
+                        const progress = ((i + 1) / notesToImport.length) * 100;
+                        progressBar.style.width = progress + '%';
+                        
+                        // Small delay to prevent overwhelming the server
+                        await new Promise(resolve => setTimeout(resolve, 150));
+                        
+                    } catch (error) {
+                        errors++;
+                        logs.textContent += `❌ Error: ${error.message}\n`;
+                    }
+                    
+                    // Scroll logs to bottom
+                    logs.scrollTop = logs.scrollHeight;
+                }
+                
+                // Final status
+                if (errors === 0) {
+                    status.className = 'status status-success';
+                    status.textContent = `🎉 SUCCESS! All ${imported} notes imported correctly!`;
+                    importBtn.textContent = '✅ Import Complete!';
+                } else {
+                    status.className = 'status status-error';
+                    status.textContent = `⚠️ Import completed with issues. ${imported} successful, ${errors} failed.`;
+                    importBtn.textContent = '⚠️ Import Complete (with errors)';
+                }
+                
+                logs.textContent += `\n🎯 FINAL RESULTS: ${imported} notes imported!\n`;
+                logs.textContent += `\n🔗 Go to http://localhost:3000 to see all notes!\n`;
+                logs.textContent += `\n✅ This time: EXACTLY 36 entries, no duplicates!\n`;
+                
+            } catch (error) {
+                status.className = 'status status-error';
+                status.textContent = `❌ Import failed: ${error.message}`;
+                importBtn.disabled = false;
+                importBtn.textContent = '🔄 Try Again';
+                
+                logs.textContent += `❌ Critical error: ${error.message}\n`;
+            }
+        }
+    </script>
+</body>
+</html>
