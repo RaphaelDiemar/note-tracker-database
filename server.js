@@ -12,6 +12,126 @@ const PORT = process.env.PORT || 80; // CHANGED: Use port 80 for clean URLs (no 
 app.use(express.json());
 app.use(express.static('public'));
 
+// 🔐 PASSWORD PROTECTION - ADD THIS SECTION
+app.use((req, res, next) => {
+    // Skip password for health check (needed for Render)
+    if (req.path === '/api/health') {
+        return next();
+    }
+    
+    // Your secret password - Rsa@081601
+    const correctPassword = 'Rsa@081601'; // ← Change this to your password
+    
+    // Check for password in URL query or form
+    const userPassword = req.query.password || req.body.password;
+    
+    // If no password provided, show login form
+    if (!userPassword) {
+        return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>🔒 Access Required - Note Tracker</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                    }
+                    .login-container {
+                        background: white;
+                        padding: 40px;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                        text-align: center;
+                        max-width: 400px;
+                        width: 90%;
+                    }
+                    h2 {
+                        color: #333;
+                        margin-bottom: 30px;
+                    }
+                    input[type="password"] {
+                        width: 100%;
+                        padding: 15px;
+                        border: 2px solid #ddd;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        margin-bottom: 20px;
+                        box-sizing: border-box;
+                    }
+                    input[type="password"]:focus {
+                        border-color: #667eea;
+                        outline: none;
+                    }
+                    button {
+                        width: 100%;
+                        padding: 15px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: transform 0.2s;
+                    }
+                    button:hover {
+                        transform: translateY(-2px);
+                    }
+                    .error {
+                        color: #e74c3c;
+                        margin-bottom: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="login-container">
+                    <h2>🔒 Note Tracker Access</h2>
+                    ${req.query.error ? '<div class="error">❌ Incorrect password</div>' : ''}
+                    <form method="GET">
+                        <input type="password" 
+                               name="password" 
+                               placeholder="Enter your password" 
+                               required 
+                               autofocus>
+                        <button type="submit">🚀 Access My Notes</button>
+                    </form>
+                </div>
+                
+                <script>
+                    // Auto-focus on password field
+                    document.querySelector('input[type="password"]').focus();
+                </script>
+            </body>
+            </html>
+        `);
+    }
+    
+    // Check if password is correct
+    if (userPassword !== correctPassword) {
+        // Redirect back with error
+        return res.redirect(req.path + '?error=1');
+    }
+    
+    // Password is correct, continue to the requested page
+    next();
+});
+
+// Helper function to preserve password in URLs
+function addPasswordToUrl(req, url) {
+    const password = req.query.password;
+    if (password) {
+        const separator = url.includes('?') ? '&' : '?';
+        return url + separator + 'password=' + encodeURIComponent(password);
+    }
+    return url;
+}
+
 const db = new sqlite3.Database('00 notetracker.db');
 
 // Create all tables
@@ -472,10 +592,10 @@ app.get('/api/cross-device-status', (req, res) => {
 // ===== HTML PAGES - UPDATED WITH CLEAN URLS =====
 // Root redirects to notes
 app.get('/', (req, res) => {
-    res.redirect('/notes');
+    res.redirect(addPasswordToUrl(req, '/notes'));
 });
 
-// CHANGED: Clean URL routes
+// CHANGED: Clean URL routes with password preservation
 app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -497,6 +617,7 @@ app.listen(PORT, () => {
     
     // ADDED: Cross-device status
     console.log('🌐 Cross-device sync: ENABLED');
+    console.log('🔒 Password protection: ENABLED');
     console.log('📊 Status: http://localhost/api/cross-device-status');
     console.log('✅ All systems working!');
     
