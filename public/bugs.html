@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Tracking System</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐛%3C/text%3E%3C/svg%3E">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .sheet-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .sheet-header {
+            background: #d32f2f;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sheet-title {
+            font-size: 1.5em;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .sheet-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin: 5px 0 0 0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .add-bug-btn {
+            background: #388e3c;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .add-bug-btn:hover {
+            background: #2e7d32;
+        }
+        
+        .export-btn {
+            background: #ff9800;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            background: #f57c00;
+        }
+        
+        .delete-all-btn {
+            background: #f44336;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .delete-all-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .search-container {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: white;
+        }
+        
+        .search-input:focus {
+            outline: 2px solid #d32f2f;
+            border-color: #d32f2f;
+        }
+        
+        .clear-search-btn {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #3c4043;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .clear-search-btn:hover {
+            background: #ffebee;
+        }
+        
+        /* Connection Status Indicator */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        
+        .connection-status.connected {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .connection-status.disconnected {
+            color: #ffcdd2;
+        }
+        
+        .connection-status.syncing {
+            color: #fff3e0;
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-dot.connected {
+            background: #4caf50;
+            animation: pulse-green 2s infinite;
+        }
+        
+        .status-dot.disconnected {
+            background: #f44336;
+            animation: pulse-red 2s infinite;
+        }
+        
+        .status-dot.syncing {
+            background: #ff9800;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Notification Toast */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #f44336;
+        }
+        
+        .notification.info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-weight: 400;
+        }
+        
+        .sheet-table th {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #3c4043;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .sheet-table td {
+            border: 1px solid #dadce0;
+            padding: 10px 16px;
+            vertical-align: middle;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+        
+        .sheet-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .sheet-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .sheet-table tr:nth-child(even):hover {
+            background: #f0f0f0;
+        }
+        
+        .sheet-table tr.hidden {
+            display: none;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 70px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        
+        .status-not-started {
+            background: #f5f5f5;
+            color: #616161;
+        }
+        
+        .status-to-do {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-in-progress {
+            background: #fef7e0;
+            color: #f9ab00;
+        }
+        
+        .status-up-next {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-pr-review {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .status-done {
+            background: #e6f4ea;
+            color: #137333;
+        }
+        
+        .status-archived {
+            background: #e8eaf6;
+            color: #3f51b5;
+        }
+        
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-align: center;
+            min-width: 50px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        
+        .priority-p1 {
+            background: #ffebee;
+            color: #c62828;
+            animation: pulse 2s infinite;
+        }
+        
+        .priority-p2 {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .priority-p3 {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+        
+        .priority-p4 {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        
+        .queue-badge {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 70px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        
+        .queue-vip {
+            background: #fff8e1;
+            color: #e65100;
+        }
+        
+        .queue-circle-plus {
+            background: #e8eaf6;
+            color: #3f51b5;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .editable-cell {
+            background: #fff;
+            border: 1px solid #dadce0;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .editable-cell:focus {
+            outline: 2px solid #d32f2f;
+            border-color: #d32f2f;
+        }
+        
+        .date-cell {
+            color: #d32f2f;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+        }
+        
+        .date-time {
+            color: #5f6368;
+            font-size: 10px;
+            font-weight: 500;
+            display: block;
+            margin-top: 2px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .add-row-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #dadce0;
+            display: none;
+        }
+        
+        .add-row-form.active {
+            display: block;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #3c4043;
+        }
+        
+        .form-input {
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-select {
+            padding: 10px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #d32f2f;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+        }
+        
+        .sheet-stats {
+            display: flex;
+            gap: 30px;
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            font-size: 0.85em;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .stat-item:hover {
+            background-color: #ffebee;
+        }
+        
+        .stat-item.active {
+            background-color: #d32f2f;
+            color: white;
+        }
+        
+        .stat-item.active .stat-label,
+        .stat-item.active .stat-value {
+            color: white;
+        }
+        
+        .stat-label {
+            color: #5f6368;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #3c4043;
+        }
+        
+        .actions-cell {
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .action-icon {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+        
+        .action-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        .edit-icon {
+            color: #1976d2;
+        }
+        
+        .edit-icon:hover {
+            background: #e3f2fd;
+        }
+        
+        .delete-icon {
+            color: #d32f2f;
+        }
+        
+        .delete-icon:hover {
+            background: #ffebee;
+        }
+        
+        .save-icon {
+            color: #388e3c;
+        }
+        
+        .save-icon:hover {
+            background: #e8f5e8;
+        }
+        
+        .cancel-icon {
+            color: #ff9800;
+        }
+        
+        .cancel-icon:hover {
+            background: #fff3e0;
+        }
+
+        .escalation-link {
+            color: #1976d2;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .escalation-link:hover {
+            text-decoration: underline;
+        }
+        
+        .summary-cell {
+            max-width: 400px;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet-container">
+        <div class="sheet-header">
+            <div>
+                <h1 class="sheet-title">🐛 Bug Tracking System</h1>
+                <p class="sheet-subtitle">Track and manage bugs efficiently</p>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">📝 Notes</a>
+                <button class="export-btn" onclick="exportToCSV()">📄 Export CSV</button>
+                <button class="export-btn" onclick="exportToExcel()">📊 Export Excel</button>
+                <button class="delete-all-btn" onclick="deleteAllRows()">🗑️ Delete All</button>
+                <button class="add-bug-btn" onclick="toggleAddForm()">+ Add New Bug</button>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search bugs by summary, agent, product, or status..." oninput="searchBugs()">
+            <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
+        </div>
+        
+        <div class="sheet-stats">
+            <div class="stat-item" onclick="filterByStatus('all')" id="totalStat">
+                <span class="stat-label">Total Bugs:</span>
+                <span class="stat-value" id="totalBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('not-started')" id="notStartedStat">
+                <span class="stat-label">Not Started:</span>
+                <span class="stat-value" id="notStartedBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('to-do')" id="todoStat">
+                <span class="stat-label">To-do:</span>
+                <span class="stat-value" id="todoBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('in-progress')" id="inProgressStat">
+                <span class="stat-label">In Progress:</span>
+                <span class="stat-value" id="inProgressBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('up-next')" id="upNextStat">
+                <span class="stat-label">Up Next:</span>
+                <span class="stat-value" id="upNextBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('pr-review')" id="prReviewStat">
+                <span class="stat-label">PR Review:</span>
+                <span class="stat-value" id="prReviewBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByStatus('done')" id="doneStat">
+                <span class="stat-label">Done:</span>
+                <span class="stat-value" id="doneBugs">0</span>
+            </div>
+            <div class="stat-item" onclick="filterByPriority('p1')" id="p1Stat">
+                <span class="stat-label">P1:</span>
+                <span class="stat-value" id="p1Bugs">0</span>
+            </div>
+        </div>
+        
+        <div class="add-row-form" id="addRowForm">
+            <div class="form-row">
+                <div style="grid-column: span 2;">
+                    <label class="form-label">Summary</label>
+                    <input type="text" class="form-input" id="newSummary" placeholder="Brief description of the bug">
+                </div>
+                <div>
+                    <label class="form-label">Queue</label>
+                    <select class="form-select" id="newQueue">
+                        <option value="VIP">VIP</option>
+                        <option value="Circle Plus">Circle Plus</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="newStatus">
+                        <option value="Not started">Not started</option>
+                        <option value="To-do">To-do</option>
+                        <option value="In progress">In progress</option>
+                        <option value="Up next">Up next</option>
+                        <option value="PR review">PR review</option>
+                        <option value="Done">Done</option>
+                        <option value="Archived">Archived</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Agent Reported</label>
+                    <select class="form-select" id="newAgent">
+                        <option value="Leonardo">Leonardo</option>
+                        <option value="Mariana">Mariana</option>
+                        <option value="Medha">Medha</option>
+                        <option value="Natalia">Natalia</option>
+                        <option value="Raphy">Raphy</option>
+                        <option value="Roberto">Roberto</option>
+                        <option value="Sam">Sam</option>
+                        <option value="William">William</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Product</label>
+                    <select class="form-select" id="newProduct">
+                        <option value="3rd Party Apps">3rd Party Apps</option>
+                        <option value="Admin Billing">Admin Billing</option>
+                        <option value="AI Agent">AI Agent</option>
+                        <option value="API (v1/v2/Headless)">API (v1/v2/Headless)</option>
+                        <option value="Analytics">Analytics</option>
+                        <option value="Circle Community">Circle Community</option>
+                        <option value="Circle Events">Circle Events</option>
+                        <option value="Circle Plus">Circle Plus</option>
+                        <option value="Community">Community</option>
+                        <option value="Courses">Courses</option>
+                        <option value="Custom Domain">Custom Domain</option>
+                        <option value="Design">Design</option>
+                        <option value="Events">Events</option>
+                        <option value="Integrations">Integrations</option>
+                        <option value="Live Stream">Live Stream</option>
+                        <option value="Login">Login</option>
+                        <option value="Email Hub">Email Hub</option>
+                        <option value="Messaging">Messaging</option>
+                        <option value="Mobile App">Mobile App</option>
+                        <option value="Notifications">Notifications</option>
+                        <option value="Paywalls">Paywalls</option>
+                        <option value="Posts">Posts</option>
+                        <option value="Security">Security</option>
+                        <option value="Single Sign-On">Single Sign-On</option>
+                        <option value="Spaces">Spaces</option>
+                        <option value="Workflows">Workflows</option>
+                        <option value="Desktop App">Desktop App</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Priority</label>
+                    <select class="form-select" id="newPriority">
+                        <option value="P4">P4</option>
+                        <option value="P3">P3</option>
+                        <option value="P2">P2</option>
+                        <option value="P1">P1</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Department</label>
+                    <select class="form-select" id="newDepartment">
+                        <option value="feedback-cms">feedback-cms</option>
+                        <option value="feedback-crm">feedback-crm</option>
+                        <option value="feedback-design-systems">feedback-design-systems</option>
+                        <option value="feedback-downtime">feedback-downtime</option>
+                        <option value="feedback-growth">feedback-growth</option>
+                        <option value="feedback-ios">feedback-ios</option>
+                        <option value="feedback-live">feedback-live</option>
+                        <option value="feedback-other">feedback-other</option>
+                        <option value="feedback-paywalls">feedback-paywalls</option>
+                        <option value="feedback-react-native-apps">feedback-react-native-apps</option>
+                        <option value="feedback-special-projects">feedback-special-projects</option>
+                        <option value="feedback-ai-agents">feedback-ai-agents</option>
+                        <option value="feedback-eh">feedback-eh</option>
+                        <option value="feedback-desktop-app">feedback-desktop-desktop</option>
+                        <option value="feedback-infra">feedback-infra</option>
+                        <option value="feedback-new">feedback-new</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Ticket(s)</label>
+                    <input type="text" class="form-input" id="newTickets" placeholder="e.g., TKT-001, TKT-002">
+                </div>
+                <div>
+                    <label class="form-label">Slack URL</label>
+                    <input type="url" class="form-input" id="newSlackUrl" placeholder="https://workspace.slack.com/...">
+                </div>
+                <div>
+                    <label class="form-label">Notion URL</label>
+                    <input type="url" class="form-input" id="newNotionUrl" placeholder="https://notion.so/...">
+                </div>
+                <div>
+                    <label class="form-label">Comments</label>
+                    <input type="text" class="form-input" id="newComments" placeholder="Additional notes...">
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewBug()">Add Bug</button>
+            </div>
+        </div>
+        
+        <table class="sheet-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Actions</th>
+                    <th style="width: 110px;">Date Created</th>
+                    <th style="width: 100px;">Queue</th>
+                    <th style="width: 350px;">Summary</th>
+                    <th style="width: 100px;">Status</th>
+                    <th style="width: 90px;">Agent Reported</th>
+                    <th style="width: 130px;">Product</th>
+                    <th style="width: 80px;">Priority</th>
+                    <th style="width: 100px;">Department</th>
+                    <th style="width: 100px;">Ticket(s)</th>
+                    <th style="width: 80px;">Slack URL</th>
+                    <th style="width: 80px;">Notion URL</th>
+                    <th style="width: 180px;">Comments</th>
+                    <th style="width: 110px;">Last Updated</th>
+                </tr>
+            </thead>
+            <tbody id="bugTableBody">
+                
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Notification Toast (will be created dynamically) -->
+
+    <script>
+        let bugList = [];
+        let currentStatusFilter = 'all';
+        let connectionStatus = 'connecting';
+
+        // Notification system
+        function showNotification(message, type = 'info', duration = 3000) {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // Hide notification after duration
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Update connection status indicator
+        function updateConnectionStatus(status, message) {
+            connectionStatus = status;
+            const statusElement = document.getElementById('connectionStatus');
+            const dotElement = document.getElementById('statusDot');
+            const textElement = document.getElementById('statusText');
+            
+            // Remove all status classes
+            statusElement.className = 'connection-status';
+            dotElement.className = 'status-dot';
+            
+            // Add current status
+            statusElement.classList.add(status);
+            dotElement.classList.add(status);
+            textElement.textContent = message;
+        }
+
+        // Check database connection
+        async function checkConnection() {
+            try {
+                const response = await fetch('/api/health', { 
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000) // 5 second timeout
+                });
+                
+                if (response.ok) {
+                    updateConnectionStatus('connected', 'Connected to Database');
+                    return true;
+                } else {
+                    updateConnectionStatus('disconnected', 'Connection Error');
+                    return false;
+                }
+            } catch (error) {
+                updateConnectionStatus('disconnected', 'Offline');
+                return false;
+            }
+        }
+
+        // Load bugs with fallback to localStorage
+        async function loadBugsFromDatabase() {
+            updateConnectionStatus('syncing', 'Syncing...');
+            
+            try {
+                const response = await fetch('/api/bugs', {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000) // 5 second timeout
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    bugList = result.data || [];
+                    displayBugs();
+                    updateStats();
+                    updateConnectionStatus('connected', 'Connected to Database');
+                    
+                    if (bugList.length === 0) {
+                        showNotification('No bugs found in database', 'info', 2000);
+                    } else {
+                        showNotification(`Loaded ${bugList.length} bugs from database`, 'success', 2000);
+                    }
+                } else {
+                    throw new Error(result.error || 'Unknown server error');
+                }
+            } catch (error) {
+                console.error('Database connection failed, using local storage:', error);
+                
+                // Fallback to localStorage
+                loadBugsFromLocalStorage();
+                updateConnectionStatus('disconnected', 'Offline Mode');
+                showNotification('Working offline - using local storage', 'info', 3000);
+            }
+        }
+
+        // Load bugs from localStorage (fallback)
+        function loadBugsFromLocalStorage() {
+            try {
+                const savedBugs = localStorage.getItem('bugList');
+                if (savedBugs) {
+                    bugList = JSON.parse(savedBugs);
+                    displayBugs();
+                    updateStats();
+                    showNotification(`Loaded ${bugList.length} bugs from local storage`, 'info', 2000);
+                } else {
+                    bugList = [];
+                    displayBugs();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                bugList = [];
+                displayBugs();
+                updateStats();
+            }
+        }
+
+        // Save to localStorage (fallback)
+        function saveBugsToLocalStorage() {
+            try {
+                localStorage.setItem('bugList', JSON.stringify(bugList));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        // Display bugs in table
+        function displayBugs() {
+            const tbody = document.getElementById('bugTableBody');
+            tbody.innerHTML = '';
+            
+            if (bugList.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="14" style="text-align: center; padding: 40px; color: #5f6368; font-style: italic;">No bugs found. Click "Add New Bug" to get started.</td>`;
+                tbody.appendChild(emptyRow);
+                return;
+            }
+            
+            const statusClass = {
+                'Not started': 'status-not-started',
+                'To-do': 'status-to-do',
+                'In progress': 'status-in-progress',
+                'Up next': 'status-up-next',
+                'PR review': 'status-pr-review',
+                'Done': 'status-done',
+                'Archived': 'status-archived'
+            };
+            
+            const priorityClass = {
+                'P4': 'priority-p4',
+                'P3': 'priority-p3',
+                'P2': 'priority-p2',
+                'P1': 'priority-p1'
+            };
+            
+            const queueClass = {
+                'VIP': 'queue-vip',
+                'Circle Plus': 'queue-circle-plus'
+            };
+            
+            bugList.forEach(bug => {
+                const newRow = document.createElement('tr');
+                
+                let slackCell = '-';
+                let notionCell = '-';
+                let queueCell = '-';
+                
+                if (bug.slackUrl && bug.slackUrl !== '') {
+                    slackCell = `<a href="${bug.slackUrl}" target="_blank" class="escalation-link">📱 Slack</a>`;
+                }
+                
+                if (bug.notionUrl && bug.notionUrl !== '') {
+                    notionCell = `<a href="${bug.notionUrl}" target="_blank" class="escalation-link">📝 Notion</a>`;
+                }
+                
+                if (bug.queue && bug.queue !== '' && bug.queue !== '-') {
+                    queueCell = `<span class="queue-badge ${queueClass[bug.queue] || 'queue-vip'}">${bug.queue}</span>`;
+                }
+                
+                newRow.innerHTML = `
+                    <td class="actions-cell">
+                        <button class="action-icon edit-icon" onclick="editRow(this)" title="Edit">✏️</button>
+                        <button class="action-icon delete-icon" onclick="deleteRow(this)" title="Delete">🗑️</button>
+                    </td>
+                    <td class="date-cell">${bug.dateCreated}<span class="date-time">${bug.timeStamp}</span></td>
+                    <td>${queueCell}</td>
+                    <td class="summary-cell">${bug.summary}</td>
+                    <td><span class="status-badge ${statusClass[bug.status] || 'status-not-started'}">${bug.status}</span></td>
+                    <td>${bug.agent}</td>
+                    <td>${bug.product}</td>
+                    <td><span class="priority-badge ${priorityClass[bug.priority] || 'priority-p4'}">${bug.priority}</span></td>
+                    <td>${bug.department}</td>
+                    <td style="font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-weight: 500; color: #1976d2; font-size: 12px;">${bug.tickets}</td>
+                    <td>${slackCell}</td>
+                    <td>${notionCell}</td>
+                    <td style="font-size: 12px; color: #5f6368; line-height: 1.4;">${bug.comments}</td>
+                    <td class="date-cell">${bug.lastUpdated}<span class="date-time">${bug.lastUpdatedTimeStamp}</span></td>
+                `;
+                newRow.setAttribute('data-bug-id', bug.id);
+                tbody.appendChild(newRow);
+            });
+        }
+
+        function filterByStatus(status) {
+            currentStatusFilter = status;
+            const tbody = document.getElementById('bugTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            document.getElementById('searchInput').value = '';
+            
+            document.querySelectorAll('.stat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            let activeStatId = '';
+            switch(status) {
+                case 'all': activeStatId = 'totalStat'; break;
+                case 'not-started': activeStatId = 'notStartedStat'; break;
+                case 'to-do': activeStatId = 'todoStat'; break;
+                case 'in-progress': activeStatId = 'inProgressStat'; break;
+                case 'up-next': activeStatId = 'upNextStat'; break;
+                case 'pr-review': activeStatId = 'prReviewStat'; break;
+                case 'done': activeStatId = 'doneStat'; break;
+            }
+            
+            if (activeStatId) {
+                document.getElementById(activeStatId).classList.add('active');
+            }
+            
+            rows.forEach(row => {
+                row.classList.remove('hidden');
+                
+                if (status === 'all') {
+                    return;
+                }
+                
+                const statusBadge = row.querySelector('.status-badge');
+                if (!statusBadge) return;
+                
+                const rowStatus = statusBadge.textContent.toLowerCase().replace(/\s+/g, '-');
+                let shouldShow = false;
+                
+                switch(status) {
+                    case 'not-started': shouldShow = rowStatus === 'not-started'; break;
+                    case 'to-do': shouldShow = rowStatus === 'to-do'; break;
+                    case 'in-progress': shouldShow = rowStatus === 'in-progress'; break;
+                    case 'up-next': shouldShow = rowStatus === 'up-next'; break;
+                    case 'pr-review': shouldShow = rowStatus === 'pr-review'; break;
+                    case 'done': shouldShow = rowStatus === 'done'; break;
+                }
+                
+                if (!shouldShow) {
+                    row.classList.add('hidden');
+                }
+            });
+            
+            updateStats();
+        }
+
+        function filterByPriority(priority) {
+            const tbody = document.getElementById('bugTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            document.getElementById('searchInput').value = '';
+            currentStatusFilter = 'all';
+            
+            document.querySelectorAll('.stat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById('p1Stat').classList.add('active');
+            
+            rows.forEach(row => {
+                row.classList.remove('hidden');
+                
+                const priorityBadge = row.querySelector('.priority-badge');
+                if (!priorityBadge) return;
+                
+                const rowPriority = priorityBadge.textContent.toLowerCase();
+                
+                if (priority === 'p1' && rowPriority !== 'p1') {
+                    row.classList.add('hidden');
+                }
+            });
+            
+            updateStats();
+        }
+
+        function searchBugs() {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            const tbody = document.getElementById('bugTableBody');
+            if (!tbody) return;
+            
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (searchTerm && currentStatusFilter !== 'all') {
+                currentStatusFilter = 'all';
+                document.querySelectorAll('.stat-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
+            rows.forEach(row => {
+                try {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 10) return;
+                    
+                    const searchableText = [
+                        cells[2] ? cells[2].textContent : '',
+                        cells[3] ? cells[3].textContent : '',
+                        cells[4] ? cells[4].textContent : '',
+                        cells[5] ? cells[5].textContent : '',
+                        cells[6] ? cells[6].textContent : '',
+                        cells[7] ? cells[7].textContent : ''
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchTerm || searchableText.includes(searchTerm)) {
+                        row.classList.remove('hidden');
+                        row.style.display = '';
+                    } else {
+                        row.classList.add('hidden');
+                        row.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.log('Error processing row', error);
+                }
+            });
+            
+            updateStats();
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            const tbody = document.getElementById('bugTableBody');
+            if (tbody) {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    row.classList.remove('hidden');
+                    row.style.display = '';
+                });
+            }
+            
+            updateStats();
+        }
+
+        function toggleAddForm() {
+            const form = document.getElementById('addRowForm');
+            form.classList.toggle('active');
+            
+            if (form.classList.contains('active')) {
+                document.getElementById('newSummary').value = '';
+                document.getElementById('newQueue').value = 'VIP';
+                document.getElementById('newStatus').value = 'Not started';
+                document.getElementById('newAgent').value = 'Raphy';
+                document.getElementById('newProduct').value = 'Mobile App';
+                document.getElementById('newPriority').value = 'P4';
+                document.getElementById('newDepartment').value = 'feedback-react-native-apps';
+                document.getElementById('newTickets').value = '';
+                document.getElementById('newSlackUrl').value = '';
+                document.getElementById('newNotionUrl').value = '';
+                document.getElementById('newComments').value = '';
+                document.getElementById('newSummary').focus();
+            }
+        }
+
+        async function addNewBug() {
+            const summary = document.getElementById('newSummary').value;
+            const queue = document.getElementById('newQueue').value;
+            const status = document.getElementById('newStatus').value;
+            const agent = document.getElementById('newAgent').value;
+            const product = document.getElementById('newProduct').value;
+            const priority = document.getElementById('newPriority').value;
+            const department = document.getElementById('newDepartment').value;
+            const tickets = document.getElementById('newTickets').value;
+            const slackUrl = document.getElementById('newSlackUrl').value;
+            const notionUrl = document.getElementById('newNotionUrl').value;
+            const comments = document.getElementById('newComments').value;
+            
+            if (!summary.trim()) {
+                showNotification('Please fill in Summary', 'error', 4000);
+                document.getElementById('newSummary').focus();
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+            
+            const newBug = {
+                id: Date.now().toString(), // Generate ID for offline mode
+                dateCreated: today,
+                timeStamp: timeString,
+                queue: queue,
+                summary: summary.trim(),
+                status: status,
+                agent: agent,
+                product: product,
+                priority: priority,
+                department: department,
+                tickets: tickets.trim(),
+                slackUrl: slackUrl.trim(),
+                notionUrl: notionUrl.trim(),
+                comments: comments.trim(),
+                lastUpdated: today,
+                lastUpdatedTimeStamp: timeString
+            };
+            
+            // Try database first, fallback to localStorage
+            if (connectionStatus === 'connected') {
+                updateConnectionStatus('syncing', 'Adding bug...');
+                
+                try {
+                    const response = await fetch('/api/bugs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(newBug),
+                        signal: AbortSignal.timeout(10000)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        toggleAddForm();
+                        await loadBugsFromDatabase();
+                        showNotification('Bug added to database!', 'success');
+                        return;
+                    } else {
+                        throw new Error(result.error || 'Failed to add bug');
+                    }
+                } catch (error) {
+                    console.error('Database add failed, using localStorage:', error);
+                    updateConnectionStatus('disconnected', 'Offline Mode');
+                }
+            }
+            
+            // Fallback to localStorage
+            bugList.push(newBug);
+            saveBugsToLocalStorage();
+            toggleAddForm();
+            displayBugs();
+            updateStats();
+            showNotification('Bug added locally (offline mode)', 'success');
+        }
+
+        function editRow(button) {
+            const row = button.closest('tr');
+            const cells = row.querySelectorAll('td');
+            
+            // Store original values for cancel functionality
+            row.setAttribute('data-original', JSON.stringify({
+                dateCreated: cells[1].textContent.trim().slice(0,10),
+                queue: cells[2].querySelector('.queue-badge') ? cells[2].querySelector('.queue-badge').textContent.trim() : cells[2].textContent.trim(),
+                summary: cells[3].textContent.trim(),
+                status: cells[4].querySelector('.status-badge') ? cells[4].querySelector('.status-badge').textContent.trim() : cells[4].textContent.trim(),
+                agent: cells[5].textContent.trim(),
+                product: cells[6].textContent.trim(),
+                priority: cells[7].querySelector('.priority-badge') ? cells[7].querySelector('.priority-badge').textContent.trim() : cells[7].textContent.trim(),
+                department: cells[8].textContent.trim(),
+                tickets: cells[9].textContent.trim(),
+                comments: cells[12].textContent.trim()
+            }));
+            
+            // Mark row as editing
+            row.classList.add('editing');
+            
+            // Change action buttons to save/cancel
+            const actionsCell = cells[0];
+            actionsCell.innerHTML = `
+                <button class="action-icon save-icon" onclick="saveRow(this)" title="Save">💾</button>
+                <button class="action-icon cancel-icon" onclick="cancelEdit(this)" title="Cancel">❌</button>
+            `;
+            
+            // Make cells editable
+            for (let i = 1; i < cells.length - 1; i++) {
+                const cell = cells[i];
+                
+                if (i === 13) continue; // Skip last updated column
+
+                if (i === 1) { // Date Created
+                    const currentDate = cell.textContent.trim().slice(0,10);
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.className = 'editable-cell';
+                    input.value = currentDate;
+                    cell.innerHTML = '';
+                    cell.appendChild(input);
+                    
+                } else if (i === 2) { // Queue
+                    const queueBadge = cell.querySelector('.queue-badge');
+                    const currentQueue = queueBadge ? queueBadge.textContent.trim() : '';
+                    
+                    const select = document.createElement('select');
+                    select.className = 'editable-cell';
+                    select.innerHTML = `
+                        <option value="VIP" ${currentQueue === 'VIP' ? 'selected' : ''}>VIP</option>
+                        <option value="Circle Plus" ${currentQueue === 'Circle Plus' ? 'selected' : ''}>Circle Plus</option>
+                    `;
+                    cell.innerHTML = '';
+                    cell.appendChild(select);
+                    
+                } else if (i === 4) { // Status
+                    const statusBadge = cell.querySelector('.status-badge');
+                    const currentStatus = statusBadge ? statusBadge.textContent.trim() : 'Not started';
+                    
+                    const select = document.createElement('select');
+                    select.className = 'editable-cell';
+                    
+                    const statusOptions = ['Not started', 'To-do', 'In progress', 'Up next', 'PR review', 'Done', 'Archived'];
+                    
+                    let optionsHTML = '';
+                    statusOptions.forEach(status => {
+                        const selected = status === currentStatus ? 'selected' : '';
+                        optionsHTML += `<option value="${status}" ${selected}>${status}</option>`;
+                    });
+                    
+                    select.innerHTML = optionsHTML;
+                    cell.innerHTML = '';
+                    cell.appendChild(select);
+                    
+                } else if (i === 7) { // Priority
+                    const priorityBadge = cell.querySelector('.priority-badge');
+                    const currentPriority = priorityBadge ? priorityBadge.textContent.trim() : 'P4';
+                    
+                    const select = document.createElement('select');
+                    select.className = 'editable-cell';
+                    select.innerHTML = `
+                        <option value="P4" ${currentPriority === 'P4' ? 'selected' : ''}>P4</option>
+                        <option value="P3" ${currentPriority === 'P3' ? 'selected' : ''}>P3</option>
+                        <option value="P2" ${currentPriority === 'P2' ? 'selected' : ''}>P2</option>
+                        <option value="P1" ${currentPriority === 'P1' ? 'selected' : ''}>P1</option>
+                    `;
+                    cell.innerHTML = '';
+                    cell.appendChild(select);
+                    
+                } else if (i === 8) { // Department
+                    const currentDept = cell.textContent.trim();
+                    const select = document.createElement('select');
+                    select.className = 'editable-cell';
+                    
+                    const deptOptions = ['feedback-cms', 'feedback-crm', 'feedback-design-systems', 'feedback-downtime', 'feedback-growth', 'feedback-ios', 'feedback-live', 'feedback-other', 'feedback-paywalls', 'feedback-react-native-apps', 'feedback-special-projects', 'feedback-ai-agents', 'feedback-eh', 'feedback-desktop-app', 'feedback-infra', 'feedback-new'];
+                    
+                    let optionsHTML = '';
+                    deptOptions.forEach(dept => {
+                        const selected = dept === currentDept ? 'selected' : '';
+                        optionsHTML += `<option value="${dept}" ${selected}>${dept}</option>`;
+                    });
+                    
+                    select.innerHTML = optionsHTML;
+                    cell.innerHTML = '';
+                    cell.appendChild(select);
+                    
+                } else if (i === 10 || i === 11) { // Skip URL columns for now
+                    continue;
+                    
+                } else { // Text fields
+                    const currentValue = cell.textContent.trim();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'editable-cell';
+                    input.value = currentValue === '-' ? '' : currentValue;
+                    cell.innerHTML = '';
+                    cell.appendChild(input);
+                }
+            }
+        }
+
+        async function saveRow(button) {
+            const row = button.closest('tr');
+            const cells = row.querySelectorAll('td');
+            const bugId = row.getAttribute('data-bug-id');
+            
+            if (!bugId) {
+                showNotification('Error: Bug ID not found', 'error');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+            
+            // Collect updated data
+            const updatedBug = {
+                id: bugId,
+                dateCreated: cells[1].querySelector('input') ? cells[1].querySelector('input').value : cells[1].textContent.trim().slice(0,10),
+                timeStamp: cells[1].textContent.trim().slice(10),
+                queue: cells[2].querySelector('select') ? cells[2].querySelector('select').value : '',
+                summary: cells[3].querySelector('input') ? cells[3].querySelector('input').value.trim() : cells[3].textContent.trim(),
+                status: cells[4].querySelector('select') ? cells[4].querySelector('select').value : '',
+                agent: cells[5].querySelector('input') ? cells[5].querySelector('input').value.trim() : cells[5].textContent.trim(),
+                product: cells[6].querySelector('input') ? cells[6].querySelector('input').value.trim() : cells[6].textContent.trim(),
+                priority: cells[7].querySelector('select') ? cells[7].querySelector('select').value : '',
+                department: cells[8].querySelector('select') ? cells[8].querySelector('select').value : '',
+                tickets: cells[9].querySelector('input') ? cells[9].querySelector('input').value.trim() : cells[9].textContent.trim(),
+                slackUrl: '', // Keep existing for now
+                notionUrl: '', // Keep existing for now
+                comments: cells[12].querySelector('input') ? cells[12].querySelector('input').value.trim() : cells[12].textContent.trim(),
+                lastUpdated: today,
+                lastUpdatedTimeStamp: timeString
+            };
+            
+            if (!updatedBug.summary.trim()) {
+                showNotification('Summary cannot be empty', 'error', 4000);
+                return;
+            }
+            
+            // Try database first, fallback to localStorage
+            if (connectionStatus === 'connected') {
+                updateConnectionStatus('syncing', 'Saving changes...');
+                
+                try {
+                    const response = await fetch(`/api/bugs/${bugId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedBug),
+                        signal: AbortSignal.timeout(10000)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        await loadBugsFromDatabase();
+                        showNotification('Bug updated in database!', 'success');
+                        return;
+                    } else {
+                        throw new Error(result.error || 'Failed to update bug');
+                    }
+                } catch (error) {
+                    console.error('Database update failed, using localStorage:', error);
+                    updateConnectionStatus('disconnected', 'Offline Mode');
+                }
+            }
+            
+            // Fallback to localStorage
+            const bugIndex = bugList.findIndex(bug => bug.id === bugId);
+            if (bugIndex !== -1) {
+                bugList[bugIndex] = updatedBug;
+                saveBugsToLocalStorage();
+                displayBugs();
+                updateStats();
+                showNotification('Bug updated locally (offline mode)', 'success');
+            } else {
+                showNotification('Bug not found in local storage', 'error');
+            }
+        }
+
+        function cancelEdit(button) {
+            loadBugsFromDatabase(); // Just reload to cancel changes
+        }
+
+        async function deleteRow(button) {
+            if (confirm('Are you sure you want to delete this bug? This action cannot be undone.')) {
+                const row = button.closest('tr');
+                const bugId = row.getAttribute('data-bug-id');
+                
+                if (!bugId) {
+                    showNotification('Error: Bug ID not found', 'error');
+                    return;
+                }
+                
+                // Try database first, fallback to localStorage
+                if (connectionStatus === 'connected') {
+                    updateConnectionStatus('syncing', 'Deleting bug...');
+                    
+                    try {
+                        const response = await fetch(`/api/bugs/${bugId}`, {
+                            method: 'DELETE',
+                            signal: AbortSignal.timeout(10000)
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            await loadBugsFromDatabase();
+                            showNotification('Bug deleted from database!', 'success');
+                            return;
+                        } else {
+                            throw new Error(result.error || 'Failed to delete bug');
+                        }
+                    } catch (error) {
+                        console.error('Database delete failed, using localStorage:', error);
+                        updateConnectionStatus('disconnected', 'Offline Mode');
+                    }
+                }
+                
+                // Fallback to localStorage
+                const bugIndex = bugList.findIndex(bug => bug.id === bugId);
+                if (bugIndex !== -1) {
+                    bugList.splice(bugIndex, 1);
+                    saveBugsToLocalStorage();
+                    displayBugs();
+                    updateStats();
+                    showNotification('Bug deleted locally (offline mode)', 'success');
+                } else {
+                    showNotification('Bug not found in local storage', 'error');
+                }
+            }
+        }
+
+        async function deleteAllRows() {
+            const confirmMessage = `Are you sure you want to delete ALL ${bugList.length} bugs?\n\nThis action cannot be undone!\n\nType "DELETE ALL" to confirm:`;
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'DELETE ALL') {
+                // Try database first, fallback to localStorage
+                if (connectionStatus === 'connected') {
+                    updateConnectionStatus('syncing', 'Deleting all bugs...');
+                    
+                    try {
+                        const response = await fetch('/api/bugs/bulk-delete', {
+                            method: 'DELETE',
+                            signal: AbortSignal.timeout(15000)
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            await loadBugsFromDatabase();
+                            showNotification('All bugs deleted from database!', 'success', 4000);
+                            return;
+                        } else {
+                            throw new Error(result.error || 'Failed to delete bugs');
+                        }
+                    } catch (error) {
+                        console.error('Database bulk delete failed, using localStorage:', error);
+                        updateConnectionStatus('disconnected', 'Offline Mode');
+                    }
+                }
+                
+                // Fallback to localStorage
+                bugList = [];
+                saveBugsToLocalStorage();
+                displayBugs();
+                updateStats();
+                showNotification('All bugs deleted locally (offline mode)', 'success', 4000);
+            } else if (userInput !== null) {
+                showNotification('Deletion cancelled. You must type "DELETE ALL" exactly to confirm.', 'info', 4000);
+            }
+        }
+
+        function exportToCSV() {
+            if (bugList.length === 0) {
+                showNotification('No bugs to export', 'info');
+                return;
+            }
+            
+            let csvContent = 'Date Created,Queue,Summary,Status,Agent Reported,Product,Priority,Department,Tickets,Comments\n';
+            
+            bugList.forEach(bug => {
+                const rowData = [
+                    bug.dateCreated,
+                    bug.queue || '',
+                    bug.summary || '',
+                    bug.status || '',
+                    bug.agent || '',
+                    bug.product || '',
+                    bug.priority || '',
+                    bug.department || '',
+                    bug.tickets || '',
+                    bug.comments || ''
+                ];
+                
+                const processedRow = rowData.map(cell => {
+                    let cellText = String(cell);
+                    if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                        cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                    }
+                    return cellText;
+                });
+                
+                csvContent += processedRow.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'bug_tracker_' + new Date().toISOString().split('T')[0] + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`Exported ${bugList.length} bugs to CSV`, 'success');
+        }
+
+        function exportToExcel() {
+            if (bugList.length === 0) {
+                showNotification('No bugs to export', 'info');
+                return;
+            }
+            
+            let excelData = [];
+            
+            excelData.push([
+                'Date Created', 'Queue', 'Summary', 'Status', 'Agent Reported', 
+                'Product', 'Priority', 'Department', 'Tickets', 'Slack URL', 'Notion URL', 
+                'Comments', 'Last Updated'
+            ]);
+            
+            bugList.forEach(bug => {
+                const rowData = [
+                    bug.dateCreated,
+                    bug.queue || '',
+                    bug.summary || '',
+                    bug.status || '',
+                    bug.agent || '',
+                    bug.product || '',
+                    bug.priority || '',
+                    bug.department || '',
+                    bug.tickets || '',
+                    bug.slackUrl || '',
+                    bug.notionUrl || '',
+                    bug.comments || '',
+                    bug.lastUpdated || ''
+                ];
+                
+                excelData.push(rowData);
+            });
+            
+            let csvContent = '\uFEFF';
+            
+            excelData.forEach(row => {
+                const processedRow = row.map(cell => {
+                    let cellText = String(cell || '');
+                    if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                        cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                    }
+                    return cellText;
+                });
+                csvContent += processedRow.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { 
+                type: 'application/vnd.ms-excel;charset=utf-8;' 
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'bug_tracker_' + new Date().toISOString().split('T')[0] + '.xlsx');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`Exported ${bugList.length} bugs to Excel`, 'success');
+        }
+
+        function updateStats() {
+            const visibleRows = document.querySelectorAll('#bugTableBody tr:not(.hidden)');
+            let total = visibleRows.length;
+            let notStarted = 0, todo = 0, inProgress = 0, upNext = 0, prReview = 0, done = 0, p1 = 0;
+            
+            visibleRows.forEach(row => {
+                const statusBadge = row.querySelector('.status-badge');
+                const priorityBadge = row.querySelector('.priority-badge');
+                
+                if (statusBadge) {
+                    const statusText = statusBadge.textContent.toLowerCase();
+                    if (statusText === 'not started') notStarted++;
+                    else if (statusText === 'to-do') todo++;
+                    else if (statusText === 'in progress') inProgress++;
+                    else if (statusText === 'up next') upNext++;
+                    else if (statusText === 'pr review') prReview++;
+                    else if (statusText === 'done') done++;
+                }
+                
+                if (priorityBadge) {
+                    const priorityText = priorityBadge.textContent.toLowerCase();
+                    if (priorityText === 'p1') p1++;
+                }
+            });
+            
+            document.getElementById('totalBugs').textContent = total;
+            document.getElementById('notStartedBugs').textContent = notStarted;
+            document.getElementById('todoBugs').textContent = todo;
+            document.getElementById('inProgressBugs').textContent = inProgress;
+            document.getElementById('upNextBugs').textContent = upNext;
+            document.getElementById('prReviewBugs').textContent = prReview;
+            document.getElementById('doneBugs').textContent = done;
+            document.getElementById('p1Bugs').textContent = p1;
+        }
+
+        // Initialize the application
+        async function initializeApp() {
+            updateConnectionStatus('connecting', 'Connecting...');
+            
+            // Check connection first
+            const isConnected = await checkConnection();
+            
+            if (isConnected) {
+                // Load data from database
+                await loadBugsFromDatabase();
+            } else {
+                // Show offline message
+                showNotification('Unable to connect to database. Please check your connection.', 'error', 5000);
+            }
+        }
+
+        // Auto-reconnect functionality
+        function startAutoReconnect() {
+            setInterval(async () => {
+                if (connectionStatus === 'disconnected') {
+                    const isConnected = await checkConnection();
+                    if (isConnected) {
+                        showNotification('Connection restored!', 'success', 2000);
+                        await loadBugsFromDatabase();
+                    }
+                }
+            }, 30000); // Check every 30 seconds
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            startAutoReconnect();
+        });
+
+        // Handle offline/online events
+        window.addEventListener('offline', function() {
+            updateConnectionStatus('disconnected', 'Offline');
+            showNotification('You are now offline', 'info', 3000);
+        });
+
+        window.addEventListener('online', function() {
+            showNotification('Connection restored - syncing data...', 'info', 2000);
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
